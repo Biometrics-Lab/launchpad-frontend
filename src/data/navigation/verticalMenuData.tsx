@@ -8,6 +8,11 @@ const verticalMenuData = (): VerticalMenuDataType[] => [
     icon: 'ri-home-smile-line'
   },
   {
+    label: 'Measurement',
+    href: '/measurement',
+    icon: 'ri-scales-line'
+  },
+  {
     label: 'About',
     href: '/about',
     icon: 'ri-information-line'
