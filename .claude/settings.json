@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "additionalDirectories": [
+      "/Users/romanvakulenko/biolab/launchpad"
+    ],
+    "allow": [
+      "Bash(npm run lint)",
+      "Bash(npm run lint:fix)",
+      "Bash(npm run build)"
+    ]
+  }
+}
