@@ -3,7 +3,6 @@
 import { useState, useMemo } from 'react'
 
 import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
@@ -21,14 +20,12 @@ import {
 } from '@tanstack/react-table'
 import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
-
 import { rankItem } from '@tanstack/match-sorter-utils'
 
-import type { TemplateMetricType } from '@/types/app/assessmentTemplateTypes'
-import type { MetricType } from '@/types/app/metricTypes'
-import type { DataSourceType } from '@/types/app/dataSourceTypes'
-import AddTemplateMetricDrawer from './AddTemplateMetricDrawer'
-import EditTemplateMetricDrawer from './EditTemplateMetricDrawer'
+import type { AssessmentResourceType } from '@/types/app/assessmentTypes'
+import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
+import AddAssessmentResourceDrawer from './AddAssessmentResourceDrawer'
+import EditAssessmentResourceDrawer from './EditAssessmentResourceDrawer'
 import tableStyles from '@core/styles/table.module.css'
 
 declare module '@tanstack/table-core' {
@@ -38,65 +35,46 @@ declare module '@tanstack/table-core' {
 
 const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value)
-
   addMeta({ itemRank })
-
   return itemRank.passed
 }
 
-const columnHelper = createColumnHelper<TemplateMetricType>()
+const columnHelper = createColumnHelper<AssessmentResourceType>()
 
 type Props = {
-  templateId: number
-  templateMetrics: TemplateMetricType[]
-  metrics: MetricType[]
-  dataSources: DataSourceType[]
+  assessmentId: number
+  assessmentResources: AssessmentResourceType[]
+  resourceTypes: DictionaryEntry[]
 }
 
-const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSources }: Props) => {
+const AssessmentResourcesTable = ({ assessmentId, assessmentResources, resourceTypes }: Props) => {
   const [addOpen, setAddOpen] = useState(false)
-  const [editTarget, setEditTarget] = useState<TemplateMetricType | null>(null)
-  const [data, setData] = useState(templateMetrics)
-
-  const metricMap = useMemo(
-    () => Object.fromEntries(metrics.map(m => [m.id, m.name])),
-    [metrics]
-  )
-
-  const dataSourceMap = useMemo(
-    () => Object.fromEntries(dataSources.map(ds => [ds.id, ds.name])),
-    [dataSources]
-  )
+  const [editTarget, setEditTarget] = useState<AssessmentResourceType | null>(null)
+  const [data, setData] = useState(assessmentResources)
 
   const handleDelete = async (id: number) => {
-    await fetch(`/api/template-metrics/${id}`, { method: 'DELETE' })
-    setData(prev => prev.filter(tm => tm.id !== id))
+    await fetch(`/api/assessment-resources/${id}`, { method: 'DELETE' })
+    setData(prev => prev.filter(r => r.id !== id))
   }
 
-  const handleUpdate = (updated: TemplateMetricType) => {
-    setData(prev => prev.map(tm => (tm.id === updated.id ? updated : tm)))
+  const handleUpdate = (updated: AssessmentResourceType) => {
+    setData(prev => prev.map(r => (r.id === updated.id ? updated : r)))
   }
 
-  const columns = useMemo<ColumnDef<TemplateMetricType, any>[]>(
+  const columns = useMemo<ColumnDef<AssessmentResourceType, any>[]>(
     () => [
       columnHelper.accessor('id', {
         header: 'ID',
         cell: ({ row }) => <Typography color='text.primary'>#{row.original.id}</Typography>
       }),
-      columnHelper.accessor('metricId', {
-        header: 'Metric',
-        cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {metricMap[row.original.metricId] ?? `#${row.original.metricId}`}
-          </Typography>
-        )
+      columnHelper.accessor('type', {
+        header: 'Type',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.type}</Typography>
       }),
-      columnHelper.accessor('sourceId', {
-        header: 'Data Source',
+      columnHelper.accessor('url', {
+        header: 'URL',
         cell: ({ row }) => (
-          <Typography color='text.secondary'>
-            {dataSourceMap[row.original.sourceId] ?? `#${row.original.sourceId}`}
-          </Typography>
+          <Typography color='text.secondary' className='max-w-xs truncate'>{row.original.url}</Typography>
         )
       }),
       {
@@ -115,7 +93,7 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSource
       }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [metricMap, dataSourceMap]
+    []
   )
 
   const table = useReactTable({
@@ -132,15 +110,10 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSource
     <>
       <Card>
         <CardHeader
-          title='Metrics'
+          title='Resources'
           action={
-            <Button
-              variant='contained'
-              size='small'
-              startIcon={<i className='ri-add-line' />}
-              onClick={() => setAddOpen(true)}
-            >
-              Add Metric
+            <Button variant='contained' size='small' startIcon={<i className='ri-add-line' />} onClick={() => setAddOpen(true)}>
+              Add Resource
             </Button>
           }
         />
@@ -153,10 +126,7 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSource
                     <th key={header.id}>
                       {header.isPlaceholder ? null : (
                         <div
-                          className={classnames({
-                            'flex items-center': header.column.getIsSorted(),
-                            'cursor-pointer select-none': header.column.getCanSort()
-                          })}
+                          className={classnames({ 'flex items-center': header.column.getIsSorted(), 'cursor-pointer select-none': header.column.getCanSort() })}
                           onClick={header.column.getToggleSortingHandler()}
                         >
                           {flexRender(header.column.columnDef.header, header.getContext())}
@@ -170,11 +140,7 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSource
             </thead>
             {table.getRowModel().rows.length === 0 ? (
               <tbody>
-                <tr>
-                  <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    No metrics assigned yet
-                  </td>
-                </tr>
+                <tr><td colSpan={table.getVisibleFlatColumns().length} className='text-center'>No resources assigned yet</td></tr>
               </tbody>
             ) : (
               <tbody>
@@ -200,19 +166,17 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSource
           onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))}
         />
       </Card>
-      <AddTemplateMetricDrawer
+      <AddAssessmentResourceDrawer
         open={addOpen}
-        templateId={templateId}
-        metrics={metrics}
-        dataSources={dataSources}
+        assessmentId={assessmentId}
+        resourceTypes={resourceTypes}
         handleClose={() => setAddOpen(false)}
-        onCreated={tm => setData(prev => [...prev, tm])}
+        onCreated={r => setData(prev => [...prev, r])}
       />
-      <EditTemplateMetricDrawer
+      <EditAssessmentResourceDrawer
         open={Boolean(editTarget)}
-        templateMetric={editTarget}
-        metrics={metrics}
-        dataSources={dataSources}
+        assessmentResource={editTarget}
+        resourceTypes={resourceTypes}
         handleClose={() => setEditTarget(null)}
         onUpdated={handleUpdate}
       />
@@ -220,4 +184,4 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSource
   )
 }
 
-export default TemplateMetricsTable
+export default AssessmentResourcesTable

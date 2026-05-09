@@ -71,24 +71,35 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
         <MenuItem href='/home' icon={<i className='ri-home-smile-line' />}>
           Dashboard
         </MenuItem>
-        <MenuSection label='Assessments data'>
-          <SubMenu label='Assessments' icon={<i className='ri-body-scan-fill' />}>
-            <MenuItem href='/assessment-templates'>Assessment Templates</MenuItem>
-            <MenuItem href='/measurement'>Measurements</MenuItem>
-            <MenuItem href='/metric'>Metrics</MenuItem>
-            <MenuItem href='/data-sources'>Data Sources</MenuItem>
-          </SubMenu>
-        </MenuSection>
-        <MenuSection label='Models'>
-          <SubMenu label='Models' icon={<i className='ri-brain-line' />}>
-            <MenuItem href='/models'>Models</MenuItem>
-          </SubMenu>
-        </MenuSection>
         <MenuSection label='People'>
           <SubMenu label='People' icon={<i className='ri-group-line' />}>
             <MenuItem href='/organisations'>Organisations</MenuItem>
             <MenuItem href='/teams'>Teams</MenuItem>
             <MenuItem href='/players'>Players</MenuItem>
+          </SubMenu>
+        </MenuSection>
+        <MenuSection label='Assessments'>
+          <SubMenu label='Assessments' icon={<i className='ri-clipboard-line' />}>
+            <MenuItem href='/assessments'>Assessments</MenuItem>
+            <MenuItem href='/assessment-templates'>Templates</MenuItem>
+            <MenuItem href='/measurement'>Measurements</MenuItem>
+            <MenuItem href='/metric'>Metrics</MenuItem>
+            <MenuItem href='/data-sources'>Data Sources</MenuItem>
+          </SubMenu>
+        </MenuSection>
+        <MenuSection label='Reports'>
+          <SubMenu label='Reports' icon={<i className='ri-line-chart-line' />}>
+            <MenuItem href='/reports'>Reports</MenuItem>
+          </SubMenu>
+        </MenuSection>
+        <MenuSection label='Models'>
+          <SubMenu label='Models' icon={<i className='ri-user-star-line' />}>
+            <MenuItem href='/models'>Models</MenuItem>
+          </SubMenu>
+        </MenuSection>
+        <MenuSection label='Users'>
+          <SubMenu label='Users' icon={<i className='ri-user-line' />}>
+            <MenuItem href='/users'>Users</MenuItem>
           </SubMenu>
         </MenuSection>
         <MenuSection label='Dictionaries'>

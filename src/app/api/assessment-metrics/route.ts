@@ -4,16 +4,19 @@ const API_BASE = 'http://localhost:8080/api/v1'
 const AUTH = 'Basic ' + Buffer.from('biolab:biolab').toString('base64')
 const HEADERS = { Authorization: AUTH, 'Content-Type': 'application/json' }
 
+export async function GET() {
+  const res = await fetch(`${API_BASE}/assessmentMetrics`, { headers: HEADERS })
+  return NextResponse.json(await res.json(), { status: res.status })
+}
+
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const res = await fetch(`${API_BASE}/templateMetrics`, { method: 'POST', headers: HEADERS, body: JSON.stringify(body) })
-
+  const res = await fetch(`${API_BASE}/assessmentMetrics`, { method: 'POST', headers: HEADERS, body: JSON.stringify(body) })
   return NextResponse.json(await res.json(), { status: res.status })
 }
 
 export async function PUT(req: NextRequest) {
   const body = await req.json()
-  const res = await fetch(`${API_BASE}/templateMetrics`, { method: 'PUT', headers: HEADERS, body: JSON.stringify(body) })
-
+  const res = await fetch(`${API_BASE}/assessmentMetrics`, { method: 'PUT', headers: HEADERS, body: JSON.stringify(body) })
   return NextResponse.json(await res.json(), { status: res.status })
 }

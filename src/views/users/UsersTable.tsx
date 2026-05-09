@@ -1,34 +1,37 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
+
+import { useRouter } from 'next/navigation'
 
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
-import CardHeader from '@mui/material/CardHeader'
 import Button from '@mui/material/Button'
+import Chip from '@mui/material/Chip'
 import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
+import TextField from '@mui/material/TextField'
 import TablePagination from '@mui/material/TablePagination'
+import IconButton from '@mui/material/IconButton'
+import type { TextFieldProps } from '@mui/material/TextField'
 
 import classnames from 'classnames'
+import { rankItem } from '@tanstack/match-sorter-utils'
 import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
   useReactTable,
-  getPaginationRowModel,
-  getSortedRowModel
+  getFilteredRowModel,
+  getSortedRowModel,
+  getPaginationRowModel
 } from '@tanstack/react-table'
 import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
-import { rankItem } from '@tanstack/match-sorter-utils'
-
-import type { TemplateMetricType } from '@/types/app/assessmentTemplateTypes'
-import type { MetricType } from '@/types/app/metricTypes'
-import type { DataSourceType } from '@/types/app/dataSourceTypes'
-import AddTemplateMetricDrawer from './AddTemplateMetricDrawer'
-import EditTemplateMetricDrawer from './EditTemplateMetricDrawer'
+import type { UserType } from '@/types/app/userTypes'
+import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
+import AddUserDrawer from './AddUserDrawer'
+import EditUserDrawer from './EditUserDrawer'
 import tableStyles from '@core/styles/table.module.css'
 
 declare module '@tanstack/table-core' {
@@ -44,66 +47,83 @@ const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   return itemRank.passed
 }
 
-const columnHelper = createColumnHelper<TemplateMetricType>()
+const DebouncedInput = ({
+  value: initialValue,
+  onChange,
+  debounce = 500,
+  ...props
+}: {
+  value: string | number
+  onChange: (value: string | number) => void
+  debounce?: number
+} & Omit<TextFieldProps, 'onChange'>) => {
+  const [value, setValue] = useState(initialValue)
 
-type Props = {
-  templateId: number
-  templateMetrics: TemplateMetricType[]
-  metrics: MetricType[]
-  dataSources: DataSourceType[]
+  useEffect(() => setValue(initialValue), [initialValue])
+
+  useEffect(() => {
+    const timeout = setTimeout(() => onChange(value), debounce)
+
+    return () => clearTimeout(timeout)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
+
+  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
 }
 
-const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSources }: Props) => {
+const columnHelper = createColumnHelper<UserType>()
+
+type Props = {
+  users: UserType[]
+  userRoles: DictionaryEntry[]
+}
+
+const UsersTable = ({ users, userRoles }: Props) => {
+  const router = useRouter()
   const [addOpen, setAddOpen] = useState(false)
-  const [editTarget, setEditTarget] = useState<TemplateMetricType | null>(null)
-  const [data, setData] = useState(templateMetrics)
-
-  const metricMap = useMemo(
-    () => Object.fromEntries(metrics.map(m => [m.id, m.name])),
-    [metrics]
-  )
-
-  const dataSourceMap = useMemo(
-    () => Object.fromEntries(dataSources.map(ds => [ds.id, ds.name])),
-    [dataSources]
-  )
+  const [editTarget, setEditTarget] = useState<UserType | null>(null)
+  const [data, setData] = useState(users)
+  const [globalFilter, setGlobalFilter] = useState('')
 
   const handleDelete = async (id: number) => {
-    await fetch(`/api/template-metrics/${id}`, { method: 'DELETE' })
-    setData(prev => prev.filter(tm => tm.id !== id))
+    await fetch(`/api/users/${id}`, { method: 'DELETE' })
+    setData(prev => prev.filter(u => u.id !== id))
   }
 
-  const handleUpdate = (updated: TemplateMetricType) => {
-    setData(prev => prev.map(tm => (tm.id === updated.id ? updated : tm)))
+  const handleUpdate = (updated: UserType) => {
+    setData(prev => prev.map(u => (u.id === updated.id ? updated : u)))
   }
 
-  const columns = useMemo<ColumnDef<TemplateMetricType, any>[]>(
+  const columns = useMemo<ColumnDef<UserType, any>[]>(
     () => [
       columnHelper.accessor('id', {
         header: 'ID',
         cell: ({ row }) => <Typography color='text.primary'>#{row.original.id}</Typography>
       }),
-      columnHelper.accessor('metricId', {
-        header: 'Metric',
+      columnHelper.accessor('name', {
+        header: 'Name',
         cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {metricMap[row.original.metricId] ?? `#${row.original.metricId}`}
+          <Typography
+            color='primary'
+            className='font-medium cursor-pointer hover:underline'
+            onClick={() => router.push(`/users/${row.original.id}`)}
+          >
+            {row.original.name}
           </Typography>
         )
       }),
-      columnHelper.accessor('sourceId', {
-        header: 'Data Source',
-        cell: ({ row }) => (
-          <Typography color='text.secondary'>
-            {dataSourceMap[row.original.sourceId] ?? `#${row.original.sourceId}`}
-          </Typography>
-        )
+      columnHelper.accessor('role', {
+        header: 'Role',
+        cell: ({ row }) => <Chip label={row.original.role} size='small' variant='outlined' />
       }),
       {
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
           <div className='flex items-center gap-1'>
+            <IconButton size='small' onClick={() => router.push(`/users/${row.original.id}`)}>
+              <i className='ri-eye-line' />
+            </IconButton>
             <IconButton size='small' onClick={() => setEditTarget(row.original)}>
               <i className='ri-edit-line' />
             </IconButton>
@@ -115,15 +135,19 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSource
       }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [metricMap, dataSourceMap]
+    []
   )
 
   const table = useReactTable({
     data,
     columns,
     filterFns: { fuzzy: fuzzyFilter },
+    state: { globalFilter },
     initialState: { pagination: { pageSize: 10 } },
+    globalFilterFn: fuzzyFilter,
     getCoreRowModel: getCoreRowModel(),
+    onGlobalFilterChange: setGlobalFilter,
+    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel()
   })
@@ -131,19 +155,23 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSource
   return (
     <>
       <Card>
-        <CardHeader
-          title='Metrics'
-          action={
-            <Button
-              variant='contained'
-              size='small'
-              startIcon={<i className='ri-add-line' />}
-              onClick={() => setAddOpen(true)}
-            >
-              Add Metric
-            </Button>
-          }
-        />
+        <CardContent className='flex justify-between flex-wrap max-sm:flex-col sm:items-center gap-4'>
+          <DebouncedInput
+            value={globalFilter ?? ''}
+            onChange={value => setGlobalFilter(String(value))}
+            placeholder='Search'
+            className='max-sm:is-full'
+          />
+          <Button
+            variant='contained'
+            color='primary'
+            className='max-sm:is-full'
+            startIcon={<i className='ri-add-line' />}
+            onClick={() => setAddOpen(true)}
+          >
+            Add User
+          </Button>
+        </CardContent>
         <div className='overflow-x-auto'>
           <table className={tableStyles.table}>
             <thead>
@@ -160,7 +188,10 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSource
                           onClick={header.column.getToggleSortingHandler()}
                         >
                           {flexRender(header.column.columnDef.header, header.getContext())}
-                          {{ asc: <i className='ri-arrow-up-s-line text-xl' />, desc: <i className='ri-arrow-down-s-line text-xl' /> }[header.column.getIsSorted() as 'asc' | 'desc'] ?? null}
+                          {{
+                            asc: <i className='ri-arrow-up-s-line text-xl' />,
+                            desc: <i className='ri-arrow-down-s-line text-xl' />
+                          }[header.column.getIsSorted() as 'asc' | 'desc'] ?? null}
                         </div>
                       )}
                     </th>
@@ -168,11 +199,11 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSource
                 </tr>
               ))}
             </thead>
-            {table.getRowModel().rows.length === 0 ? (
+            {table.getFilteredRowModel().rows.length === 0 ? (
               <tbody>
                 <tr>
                   <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    No metrics assigned yet
+                    No users found
                   </td>
                 </tr>
               </tbody>
@@ -190,29 +221,26 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSource
           </table>
         </div>
         <TablePagination
-          rowsPerPageOptions={[10, 25]}
+          rowsPerPageOptions={[10, 25, 50]}
           component='div'
           className='border-bs'
-          count={data.length}
+          count={table.getFilteredRowModel().rows.length}
           rowsPerPage={table.getState().pagination.pageSize}
           page={table.getState().pagination.pageIndex}
           onPageChange={(_, page) => table.setPageIndex(page)}
           onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))}
         />
       </Card>
-      <AddTemplateMetricDrawer
+      <AddUserDrawer
         open={addOpen}
-        templateId={templateId}
-        metrics={metrics}
-        dataSources={dataSources}
+        userRoles={userRoles}
         handleClose={() => setAddOpen(false)}
-        onCreated={tm => setData(prev => [...prev, tm])}
+        onCreated={user => setData(prev => [...prev, user])}
       />
-      <EditTemplateMetricDrawer
+      <EditUserDrawer
         open={Boolean(editTarget)}
-        templateMetric={editTarget}
-        metrics={metrics}
-        dataSources={dataSources}
+        user={editTarget}
+        userRoles={userRoles}
         handleClose={() => setEditTarget(null)}
         onUpdated={handleUpdate}
       />
@@ -220,4 +248,4 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSource
   )
 }
 
-export default TemplateMetricsTable
+export default UsersTable

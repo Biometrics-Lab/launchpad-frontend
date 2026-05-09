@@ -3,7 +3,6 @@
 import { useState, useMemo } from 'react'
 
 import Card from '@mui/material/Card'
-import CardContent from '@mui/material/CardContent'
 import CardHeader from '@mui/material/CardHeader'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
@@ -21,14 +20,11 @@ import {
 } from '@tanstack/react-table'
 import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
-
 import { rankItem } from '@tanstack/match-sorter-utils'
 
-import type { TemplateMetricType } from '@/types/app/assessmentTemplateTypes'
-import type { MetricType } from '@/types/app/metricTypes'
-import type { DataSourceType } from '@/types/app/dataSourceTypes'
-import AddTemplateMetricDrawer from './AddTemplateMetricDrawer'
-import EditTemplateMetricDrawer from './EditTemplateMetricDrawer'
+import type { UserPlayerType } from '@/types/app/userTypes'
+import type { PlayerType } from '@/types/app/playersTypes'
+import AddUserPlayerDrawer from './AddUserPlayerDrawer'
 import tableStyles from '@core/styles/table.module.css'
 
 declare module '@tanstack/table-core' {
@@ -44,58 +40,39 @@ const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   return itemRank.passed
 }
 
-const columnHelper = createColumnHelper<TemplateMetricType>()
+const columnHelper = createColumnHelper<UserPlayerType>()
 
 type Props = {
-  templateId: number
-  templateMetrics: TemplateMetricType[]
-  metrics: MetricType[]
-  dataSources: DataSourceType[]
+  userId: number
+  userPlayers: UserPlayerType[]
+  players: PlayerType[]
 }
 
-const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSources }: Props) => {
+const UserPlayersTable = ({ userId, userPlayers, players }: Props) => {
   const [addOpen, setAddOpen] = useState(false)
-  const [editTarget, setEditTarget] = useState<TemplateMetricType | null>(null)
-  const [data, setData] = useState(templateMetrics)
+  const [data, setData] = useState(userPlayers)
 
-  const metricMap = useMemo(
-    () => Object.fromEntries(metrics.map(m => [m.id, m.name])),
-    [metrics]
-  )
-
-  const dataSourceMap = useMemo(
-    () => Object.fromEntries(dataSources.map(ds => [ds.id, ds.name])),
-    [dataSources]
+  const playerMap = useMemo(
+    () => Object.fromEntries(players.map(p => [p.id, p.name])),
+    [players]
   )
 
   const handleDelete = async (id: number) => {
-    await fetch(`/api/template-metrics/${id}`, { method: 'DELETE' })
-    setData(prev => prev.filter(tm => tm.id !== id))
+    await fetch(`/api/user-players/${id}`, { method: 'DELETE' })
+    setData(prev => prev.filter(up => up.id !== id))
   }
 
-  const handleUpdate = (updated: TemplateMetricType) => {
-    setData(prev => prev.map(tm => (tm.id === updated.id ? updated : tm)))
-  }
-
-  const columns = useMemo<ColumnDef<TemplateMetricType, any>[]>(
+  const columns = useMemo<ColumnDef<UserPlayerType, any>[]>(
     () => [
       columnHelper.accessor('id', {
         header: 'ID',
         cell: ({ row }) => <Typography color='text.primary'>#{row.original.id}</Typography>
       }),
-      columnHelper.accessor('metricId', {
-        header: 'Metric',
+      columnHelper.accessor('playerId', {
+        header: 'Player',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
-            {metricMap[row.original.metricId] ?? `#${row.original.metricId}`}
-          </Typography>
-        )
-      }),
-      columnHelper.accessor('sourceId', {
-        header: 'Data Source',
-        cell: ({ row }) => (
-          <Typography color='text.secondary'>
-            {dataSourceMap[row.original.sourceId] ?? `#${row.original.sourceId}`}
+            {playerMap[row.original.playerId] ?? `#${row.original.playerId}`}
           </Typography>
         )
       }),
@@ -103,19 +80,14 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSource
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
-          <div className='flex items-center gap-1'>
-            <IconButton size='small' onClick={() => setEditTarget(row.original)}>
-              <i className='ri-edit-line' />
-            </IconButton>
-            <IconButton size='small' color='error' onClick={() => handleDelete(row.original.id)}>
-              <i className='ri-delete-bin-line' />
-            </IconButton>
-          </div>
+          <IconButton size='small' color='error' onClick={() => handleDelete(row.original.id)}>
+            <i className='ri-delete-bin-line' />
+          </IconButton>
         )
       }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [metricMap, dataSourceMap]
+    [playerMap]
   )
 
   const table = useReactTable({
@@ -132,7 +104,7 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSource
     <>
       <Card>
         <CardHeader
-          title='Metrics'
+          title='Linked Players'
           action={
             <Button
               variant='contained'
@@ -140,7 +112,7 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSource
               startIcon={<i className='ri-add-line' />}
               onClick={() => setAddOpen(true)}
             >
-              Add Metric
+              Link Player
             </Button>
           }
         />
@@ -172,7 +144,7 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSource
               <tbody>
                 <tr>
                   <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    No metrics assigned yet
+                    No players linked yet
                   </td>
                 </tr>
               </tbody>
@@ -200,24 +172,15 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, metrics, dataSource
           onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))}
         />
       </Card>
-      <AddTemplateMetricDrawer
+      <AddUserPlayerDrawer
         open={addOpen}
-        templateId={templateId}
-        metrics={metrics}
-        dataSources={dataSources}
+        userId={userId}
+        players={players}
         handleClose={() => setAddOpen(false)}
-        onCreated={tm => setData(prev => [...prev, tm])}
-      />
-      <EditTemplateMetricDrawer
-        open={Boolean(editTarget)}
-        templateMetric={editTarget}
-        metrics={metrics}
-        dataSources={dataSources}
-        handleClose={() => setEditTarget(null)}
-        onUpdated={handleUpdate}
+        onCreated={up => setData(prev => [...prev, up])}
       />
     </>
   )
 }
 
-export default TemplateMetricsTable
+export default UserPlayersTable
