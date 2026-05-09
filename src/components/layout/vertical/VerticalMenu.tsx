@@ -8,7 +8,7 @@ import PerfectScrollbar from 'react-perfect-scrollbar'
 import type { VerticalMenuContextProps } from '@menu/components/vertical-menu/Menu'
 
 // Component Imports
-import { Menu, MenuItem } from '@menu/vertical-menu'
+import {Menu, MenuItem, MenuSection, SubMenu} from '@menu/vertical-menu'
 
 // Hook Imports
 import useVerticalNav from '@menu/hooks/useVerticalNav'
@@ -69,11 +69,53 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
         menuSectionStyles={menuSectionStyles(verticalNavOptions, theme)}
       >
         <MenuItem href='/home' icon={<i className='ri-home-smile-line' />}>
-          Home
+          Dashboard
         </MenuItem>
-        <MenuItem href='/about' icon={<i className='ri-information-line' />}>
-          About
-        </MenuItem>
+        <MenuSection label='People'>
+          <SubMenu label='People' icon={<i className='ri-group-line' />}>
+            <MenuItem href='/organisations'>Organisations</MenuItem>
+            <MenuItem href='/teams'>Teams</MenuItem>
+            <MenuItem href='/players'>Players</MenuItem>
+          </SubMenu>
+        </MenuSection>
+        <MenuSection label='Assessments'>
+          <SubMenu label='Assessments' icon={<i className='ri-clipboard-line' />}>
+            <MenuItem href='/assessments'>Assessments</MenuItem>
+            <MenuItem href='/assessment-templates'>Templates</MenuItem>
+            <MenuItem href='/measurement'>Measurements</MenuItem>
+            <MenuItem href='/metric'>Metrics</MenuItem>
+            <MenuItem href='/data-sources'>Data Sources</MenuItem>
+          </SubMenu>
+        </MenuSection>
+        <MenuSection label='Reports'>
+          <SubMenu label='Reports' icon={<i className='ri-line-chart-line' />}>
+            <MenuItem href='/reports'>Reports</MenuItem>
+          </SubMenu>
+        </MenuSection>
+        <MenuSection label='Models'>
+          <SubMenu label='Models' icon={<i className='ri-user-star-line' />}>
+            <MenuItem href='/models'>Models</MenuItem>
+          </SubMenu>
+        </MenuSection>
+        <MenuSection label='Users'>
+          <SubMenu label='Users' icon={<i className='ri-user-line' />}>
+            <MenuItem href='/users'>Users</MenuItem>
+          </SubMenu>
+        </MenuSection>
+        <MenuSection label='Dictionaries'>
+          <SubMenu label='Dictionaries' icon={<i className='ri-book-2-line' />}>
+            <MenuItem href='/dictionaries/age-groups'>Age Groups</MenuItem>
+            <MenuItem href='/dictionaries/data-source-types'>Data Source Types</MenuItem>
+            <MenuItem href='/dictionaries/resource-types'>Resource Types</MenuItem>
+            <MenuItem href='/dictionaries/sports'>Sports</MenuItem>
+            <MenuItem href='/dictionaries/user-roles'>User Roles</MenuItem>
+          </SubMenu>
+        </MenuSection>
+        <MenuSection label='Others'>
+          <MenuItem href='/about' icon={<i className='ri-information-line' />}>
+            About
+          </MenuItem>
+        </MenuSection>
       </Menu>
       {/* <Menu
         popoutMenuOffset={{ mainAxis: 10 }}

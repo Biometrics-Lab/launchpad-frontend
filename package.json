@@ -21,18 +21,21 @@
     "@mui/lab": "6.0.0-beta.19",
     "@mui/material": "6.2.1",
     "@mui/material-nextjs": "6.2.1",
+    "@tanstack/match-sorter-utils": "8.19.4",
+    "@tanstack/react-table": "8.20.6",
     "classnames": "2.5.1",
-    "next": "15.1.2",
+    "next": "15.5.15",
     "react": "18.3.1",
     "react-colorful": "5.6.1",
     "react-dom": "18.3.1",
+    "react-hook-form": "^7.75.0",
     "react-perfect-scrollbar": "1.5.8",
     "react-use": "17.6.0",
     "server-only": "0.0.1"
   },
   "devDependencies": {
     "@iconify/json": "2.2.286",
-    "@iconify/tools": "4.1.1",
+    "@iconify/tools": "^4.2.0",
     "@iconify/types": "2.0.0",
     "@iconify/utils": "2.2.1",
     "@types/node": "^22.10.2",
@@ -55,7 +58,7 @@
     "stylis-plugin-rtl": "2.1.1",
     "tailwindcss": "3.4.17",
     "tailwindcss-logical": "3.0.1",
-    "tsx": "4.19.2",
+    "tsx": "^4.21.0",
     "typescript": "5.5.4"
   },
   "resolutions": {

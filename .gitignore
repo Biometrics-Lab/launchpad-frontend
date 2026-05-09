@@ -29,3 +29,9 @@ replay_pid*
 # build output
 /.next/
 /node_modules/
+
+# TypeScript incremental build cache
+tsconfig.tsbuildinfo
+
+# macOS Finder metadata
+.DS_Store
