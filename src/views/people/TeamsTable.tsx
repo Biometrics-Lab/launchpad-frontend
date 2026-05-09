@@ -6,7 +6,6 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import Checkbox from '@mui/material/Checkbox'
 import TextField from '@mui/material/TextField'
 import TablePagination from '@mui/material/TablePagination'
 import IconButton from '@mui/material/IconButton'
@@ -20,30 +19,22 @@ import {
   getCoreRowModel,
   useReactTable,
   getFilteredRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFacetedMinMaxValues,
-  getPaginationRowModel,
-  getSortedRowModel
+  getSortedRowModel,
+  getPaginationRowModel
 } from '@tanstack/react-table'
 import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
-import type { MeasurementType } from '@/types/app/assessmentTypes'
-import AddMeasurementDrawer from './AddMeasurementDrawer'
-import EditMeasurementDrawer from './EditMeasurementDrawer'
+import type { TeamType, OrganisationType } from '@/types/app/playersTypes'
+import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
+import AddTeamDrawer from './AddTeamDrawer'
+import EditTeamDrawer from './EditTeamDrawer'
 import tableStyles from '@core/styles/table.module.css'
 
 declare module '@tanstack/table-core' {
-  interface FilterFns {
-    fuzzy: FilterFn<unknown>
-  }
-  interface FilterMeta {
-    itemRank: RankingInfo
-  }
+  interface FilterFns { fuzzy: FilterFn<unknown> }
+  interface FilterMeta { itemRank: RankingInfo }
 }
-
-const API_BASE = '/api'
 
 const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value)
@@ -65,14 +56,10 @@ const DebouncedInput = ({
 } & Omit<TextFieldProps, 'onChange'>) => {
   const [value, setValue] = useState(initialValue)
 
-  useEffect(() => {
-    setValue(initialValue)
-  }, [initialValue])
+  useEffect(() => setValue(initialValue), [initialValue])
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      onChange(value)
-    }, debounce)
+    const timeout = setTimeout(() => onChange(value), debounce)
 
     return () => clearTimeout(timeout)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -81,44 +68,36 @@ const DebouncedInput = ({
   return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
 }
 
-const columnHelper = createColumnHelper<MeasurementType>()
+const columnHelper = createColumnHelper<TeamType>()
 
-const MeasurementsTable = ({ measurementData }: { measurementData?: MeasurementType[] }) => {
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [editTarget, setEditTarget] = useState<MeasurementType | null>(null)
-  const [rowSelection, setRowSelection] = useState({})
-  const [data, setData] = useState(measurementData ?? [])
+type Props = {
+  teams: TeamType[]
+  organisations: OrganisationType[]
+  sports: DictionaryEntry[]
+}
+
+const TeamsTable = ({ teams, organisations, sports }: Props) => {
+  const [addOpen, setAddOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<TeamType | null>(null)
+  const [data, setData] = useState(teams)
   const [globalFilter, setGlobalFilter] = useState('')
 
+  const organisationMap = useMemo(
+    () => Object.fromEntries(organisations.map(o => [o.id, o.name])),
+    [organisations]
+  )
+
   const handleDelete = async (id: number) => {
-    await fetch(`${API_BASE}/measurements/${id}`, { method: 'DELETE' })
-    setData(prev => prev.filter(m => m.id !== id))
+    await fetch(`/api/teams/${id}`, { method: 'DELETE' })
+    setData(prev => prev.filter(t => t.id !== id))
   }
 
-  const handleUpdate = (updated: MeasurementType) => {
-    setData(prev => prev.map(m => (m.id === updated.id ? updated : m)))
+  const handleUpdate = (updated: TeamType) => {
+    setData(prev => prev.map(t => (t.id === updated.id ? updated : t)))
   }
 
-  const columns = useMemo<ColumnDef<MeasurementType, any>[]>(
+  const columns = useMemo<ColumnDef<TeamType, any>[]>(
     () => [
-      {
-        id: 'select',
-        header: ({ table }) => (
-          <Checkbox
-            checked={table.getIsAllRowsSelected()}
-            indeterminate={table.getIsSomeRowsSelected()}
-            onChange={table.getToggleAllRowsSelectedHandler()}
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            disabled={!row.getCanSelect()}
-            indeterminate={row.getIsSomeSelected()}
-            onChange={row.getToggleSelectedHandler()}
-          />
-        )
-      },
       columnHelper.accessor('id', {
         header: 'ID',
         cell: ({ row }) => <Typography color='text.primary'>#{row.original.id}</Typography>
@@ -129,6 +108,24 @@ const MeasurementsTable = ({ measurementData }: { measurementData?: MeasurementT
           <Typography color='text.primary' className='font-medium'>
             {row.original.name}
           </Typography>
+        )
+      }),
+      columnHelper.accessor('organisationId', {
+        header: 'Organisation',
+        cell: ({ row }) => (
+          <Typography color='text.secondary'>
+            {organisationMap[row.original.organisationId] ?? `#${row.original.organisationId}`}
+          </Typography>
+        )
+      }),
+      columnHelper.accessor('sport', {
+        header: 'Sport',
+        cell: ({ row }) => <Typography color='text.secondary'>{row.original.sport}</Typography>
+      }),
+      columnHelper.accessor('description', {
+        header: 'Description',
+        cell: ({ row }) => (
+          <Typography color='text.secondary'>{row.original.description ?? '—'}</Typography>
         )
       }),
       {
@@ -147,26 +144,21 @@ const MeasurementsTable = ({ measurementData }: { measurementData?: MeasurementT
       }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [organisationMap]
   )
 
   const table = useReactTable({
     data,
     columns,
     filterFns: { fuzzy: fuzzyFilter },
-    state: { rowSelection, globalFilter },
+    state: { globalFilter },
     initialState: { pagination: { pageSize: 10 } },
-    enableRowSelection: true,
     globalFilterFn: fuzzyFilter,
-    onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     onGlobalFilterChange: setGlobalFilter,
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getFacetedMinMaxValues: getFacetedMinMaxValues()
+    getPaginationRowModel: getPaginationRowModel()
   })
 
   return (
@@ -184,9 +176,9 @@ const MeasurementsTable = ({ measurementData }: { measurementData?: MeasurementT
             color='primary'
             className='max-sm:is-full'
             startIcon={<i className='ri-add-line' />}
-            onClick={() => setDrawerOpen(true)}
+            onClick={() => setAddOpen(true)}
           >
-            Add Measurement
+            Add Team
           </Button>
         </CardContent>
         <div className='overflow-x-auto'>
@@ -220,22 +212,19 @@ const MeasurementsTable = ({ measurementData }: { measurementData?: MeasurementT
               <tbody>
                 <tr>
                   <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    No data available
+                    No teams found
                   </td>
                 </tr>
               </tbody>
             ) : (
               <tbody>
-                {table
-                  .getRowModel()
-                  .rows.slice(0, table.getState().pagination.pageSize)
-                  .map(row => (
-                    <tr key={row.id} className={classnames({ selected: row.getIsSelected() })}>
-                      {row.getVisibleCells().map(cell => (
-                        <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-                      ))}
-                    </tr>
-                  ))}
+                {table.getRowModel().rows.slice(0, table.getState().pagination.pageSize).map(row => (
+                  <tr key={row.id}>
+                    {row.getVisibleCells().map(cell => (
+                      <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                    ))}
+                  </tr>
+                ))}
               </tbody>
             )}
           </table>
@@ -251,14 +240,18 @@ const MeasurementsTable = ({ measurementData }: { measurementData?: MeasurementT
           onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))}
         />
       </Card>
-      <AddMeasurementDrawer
-        open={drawerOpen}
-        handleClose={() => setDrawerOpen(false)}
-        onCreated={measurement => setData(prev => [...prev, measurement])}
+      <AddTeamDrawer
+        open={addOpen}
+        organisations={organisations}
+        sports={sports}
+        handleClose={() => setAddOpen(false)}
+        onCreated={team => setData(prev => [...prev, team])}
       />
-      <EditMeasurementDrawer
+      <EditTeamDrawer
         open={Boolean(editTarget)}
-        measurement={editTarget}
+        team={editTarget}
+        organisations={organisations}
+        sports={sports}
         handleClose={() => setEditTarget(null)}
         onUpdated={handleUpdate}
       />
@@ -266,4 +259,4 @@ const MeasurementsTable = ({ measurementData }: { measurementData?: MeasurementT
   )
 }
 
-export default MeasurementsTable
+export default TeamsTable

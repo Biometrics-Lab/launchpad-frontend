@@ -1,31 +1,28 @@
-import CustomerListTable from '@views/apps/ecommerce/customers/list/MeasurementsTable'
+import MeasurementsTable from '@views/assessments/measurements/MeasurementsTable'
+import type { MeasurementType } from '@/types/app/assessmentTypes'
 
-// Data Imports
-import { getEcommerceData } from '@/app/server/actions'
+const API_BASE = 'http://localhost:8080/api/v1'
+const AUTH = 'Basic ' + Buffer.from('biolab:biolab').toString('base64')
 
-/**
- * ! If you need data using an API call, uncomment the below API code, update the `process.env.API_URL` variable in the
- * ! `.env` file found at root of your project and also update the API endpoints like `/apps/ecommerce` in below example.
- * ! Also, remove the above server action import and the action itself from the `src/app/server/actions.ts` file to clean up unused code
- * ! because we've used the server action for getting our static data.
- */
+const getMeasurements = async (): Promise<MeasurementType[]> => {
+  try {
+    const res = await fetch(`${API_BASE}/measurements`, {
+      headers: { Authorization: AUTH },
+      cache: 'no-store'
+    })
 
-/* const getEcommerceData = async () => {
-  // Vars
-  const res = await fetch(`${process.env.API_URL}/apps/ecommerce`)
+    if (!res.ok) return []
 
-  if (!res.ok) {
-    throw new Error('Failed to fetch ecommerce data')
+    return res.json()
+  } catch {
+    return []
   }
-
-  return res.json()
-} */
-
-const CustomerListTablePage = async () => {
-  // Vars
-  const data = await getEcommerceData()
-
-  return <CustomerListTable customerData={data?.customerData} />
 }
 
-export default CustomerListTablePage
+const MeasurementPage = async () => {
+  const data = await getMeasurements()
+
+  return <MeasurementsTable measurementData={data} />
+}
+
+export default MeasurementPage

@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect } from 'react'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Button from '@mui/material/Button'
+import Chip from '@mui/material/Chip'
 import Typography from '@mui/material/Typography'
 import Checkbox from '@mui/material/Checkbox'
 import TextField from '@mui/material/TextField'
@@ -29,9 +30,10 @@ import {
 import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
+import type { MetricType } from '@/types/app/metricTypes'
 import type { MeasurementType } from '@/types/app/assessmentTypes'
-import AddMeasurementDrawer from './AddMeasurementDrawer'
-import EditMeasurementDrawer from './EditMeasurementDrawer'
+import AddMetricDrawer from './AddMetricDrawer'
+import EditMetricDrawer from './EditMetricDrawer'
 import tableStyles from '@core/styles/table.module.css'
 
 declare module '@tanstack/table-core' {
@@ -42,8 +44,6 @@ declare module '@tanstack/table-core' {
     itemRank: RankingInfo
   }
 }
-
-const API_BASE = '/api'
 
 const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value)
@@ -65,14 +65,10 @@ const DebouncedInput = ({
 } & Omit<TextFieldProps, 'onChange'>) => {
   const [value, setValue] = useState(initialValue)
 
-  useEffect(() => {
-    setValue(initialValue)
-  }, [initialValue])
+  useEffect(() => setValue(initialValue), [initialValue])
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      onChange(value)
-    }, debounce)
+    const timeout = setTimeout(() => onChange(value), debounce)
 
     return () => clearTimeout(timeout)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -81,25 +77,35 @@ const DebouncedInput = ({
   return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
 }
 
-const columnHelper = createColumnHelper<MeasurementType>()
+const columnHelper = createColumnHelper<MetricType>()
 
-const MeasurementsTable = ({ measurementData }: { measurementData?: MeasurementType[] }) => {
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [editTarget, setEditTarget] = useState<MeasurementType | null>(null)
+type Props = {
+  metricData: MetricType[]
+  measurementData: MeasurementType[]
+}
+
+const MetricsTable = ({ metricData, measurementData }: Props) => {
+  const [addOpen, setAddOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<MetricType | null>(null)
   const [rowSelection, setRowSelection] = useState({})
-  const [data, setData] = useState(measurementData ?? [])
+  const [data, setData] = useState(metricData)
   const [globalFilter, setGlobalFilter] = useState('')
 
+  const measurementMap = useMemo(
+    () => Object.fromEntries(measurementData.map(m => [m.id, m.name])),
+    [measurementData]
+  )
+
   const handleDelete = async (id: number) => {
-    await fetch(`${API_BASE}/measurements/${id}`, { method: 'DELETE' })
+    await fetch(`/api/metrics/${id}`, { method: 'DELETE' })
     setData(prev => prev.filter(m => m.id !== id))
   }
 
-  const handleUpdate = (updated: MeasurementType) => {
+  const handleUpdate = (updated: MetricType) => {
     setData(prev => prev.map(m => (m.id === updated.id ? updated : m)))
   }
 
-  const columns = useMemo<ColumnDef<MeasurementType, any>[]>(
+  const columns = useMemo<ColumnDef<MetricType, any>[]>(
     () => [
       {
         id: 'select',
@@ -131,6 +137,21 @@ const MeasurementsTable = ({ measurementData }: { measurementData?: MeasurementT
           </Typography>
         )
       }),
+      columnHelper.accessor('measurementId', {
+        header: 'Measurement',
+        cell: ({ row }) => (
+          <Typography color='text.secondary'>{measurementMap[row.original.measurementId] ?? '—'}</Typography>
+        )
+      }),
+      columnHelper.accessor('negate', {
+        header: 'Negate',
+        cell: ({ row }) =>
+          row.original.negate ? (
+            <Chip label='Yes' color='warning' size='small' />
+          ) : (
+            <Chip label='No' color='default' size='small' />
+          )
+      }),
       {
         id: 'actions',
         header: 'Actions',
@@ -147,7 +168,7 @@ const MeasurementsTable = ({ measurementData }: { measurementData?: MeasurementT
       }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    []
+    [measurementMap]
   )
 
   const table = useReactTable({
@@ -184,9 +205,9 @@ const MeasurementsTable = ({ measurementData }: { measurementData?: MeasurementT
             color='primary'
             className='max-sm:is-full'
             startIcon={<i className='ri-add-line' />}
-            onClick={() => setDrawerOpen(true)}
+            onClick={() => setAddOpen(true)}
           >
-            Add Measurement
+            Add Metric
           </Button>
         </CardContent>
         <div className='overflow-x-auto'>
@@ -251,14 +272,16 @@ const MeasurementsTable = ({ measurementData }: { measurementData?: MeasurementT
           onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))}
         />
       </Card>
-      <AddMeasurementDrawer
-        open={drawerOpen}
-        handleClose={() => setDrawerOpen(false)}
-        onCreated={measurement => setData(prev => [...prev, measurement])}
+      <AddMetricDrawer
+        open={addOpen}
+        measurements={measurementData}
+        handleClose={() => setAddOpen(false)}
+        onCreated={metric => setData(prev => [...prev, metric])}
       />
-      <EditMeasurementDrawer
+      <EditMetricDrawer
         open={Boolean(editTarget)}
-        measurement={editTarget}
+        metric={editTarget}
+        measurements={measurementData}
         handleClose={() => setEditTarget(null)}
         onUpdated={handleUpdate}
       />
@@ -266,4 +289,4 @@ const MeasurementsTable = ({ measurementData }: { measurementData?: MeasurementT
   )
 }
 
-export default MeasurementsTable
+export default MetricsTable

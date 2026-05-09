@@ -6,7 +6,6 @@ import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import Checkbox from '@mui/material/Checkbox'
 import TextField from '@mui/material/TextField'
 import TablePagination from '@mui/material/TablePagination'
 import IconButton from '@mui/material/IconButton'
@@ -20,30 +19,21 @@ import {
   getCoreRowModel,
   useReactTable,
   getFilteredRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFacetedMinMaxValues,
-  getPaginationRowModel,
-  getSortedRowModel
+  getSortedRowModel,
+  getPaginationRowModel
 } from '@tanstack/react-table'
 import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
-import type { MeasurementType } from '@/types/app/assessmentTypes'
-import AddMeasurementDrawer from './AddMeasurementDrawer'
-import EditMeasurementDrawer from './EditMeasurementDrawer'
+import type { OrganisationType } from '@/types/app/playersTypes'
+import AddOrganisationDrawer from './AddOrganisationDrawer'
+import EditOrganisationDrawer from './EditOrganisationDrawer'
 import tableStyles from '@core/styles/table.module.css'
 
 declare module '@tanstack/table-core' {
-  interface FilterFns {
-    fuzzy: FilterFn<unknown>
-  }
-  interface FilterMeta {
-    itemRank: RankingInfo
-  }
+  interface FilterFns { fuzzy: FilterFn<unknown> }
+  interface FilterMeta { itemRank: RankingInfo }
 }
-
-const API_BASE = '/api'
 
 const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value)
@@ -65,14 +55,10 @@ const DebouncedInput = ({
 } & Omit<TextFieldProps, 'onChange'>) => {
   const [value, setValue] = useState(initialValue)
 
-  useEffect(() => {
-    setValue(initialValue)
-  }, [initialValue])
+  useEffect(() => setValue(initialValue), [initialValue])
 
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      onChange(value)
-    }, debounce)
+    const timeout = setTimeout(() => onChange(value), debounce)
 
     return () => clearTimeout(timeout)
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -81,44 +67,27 @@ const DebouncedInput = ({
   return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
 }
 
-const columnHelper = createColumnHelper<MeasurementType>()
+const columnHelper = createColumnHelper<OrganisationType>()
 
-const MeasurementsTable = ({ measurementData }: { measurementData?: MeasurementType[] }) => {
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const [editTarget, setEditTarget] = useState<MeasurementType | null>(null)
-  const [rowSelection, setRowSelection] = useState({})
-  const [data, setData] = useState(measurementData ?? [])
+type Props = { organisations: OrganisationType[] }
+
+const OrganisationsTable = ({ organisations }: Props) => {
+  const [addOpen, setAddOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<OrganisationType | null>(null)
+  const [data, setData] = useState(organisations)
   const [globalFilter, setGlobalFilter] = useState('')
 
   const handleDelete = async (id: number) => {
-    await fetch(`${API_BASE}/measurements/${id}`, { method: 'DELETE' })
-    setData(prev => prev.filter(m => m.id !== id))
+    await fetch(`/api/organisations/${id}`, { method: 'DELETE' })
+    setData(prev => prev.filter(o => o.id !== id))
   }
 
-  const handleUpdate = (updated: MeasurementType) => {
-    setData(prev => prev.map(m => (m.id === updated.id ? updated : m)))
+  const handleUpdate = (updated: OrganisationType) => {
+    setData(prev => prev.map(o => (o.id === updated.id ? updated : o)))
   }
 
-  const columns = useMemo<ColumnDef<MeasurementType, any>[]>(
+  const columns = useMemo<ColumnDef<OrganisationType, any>[]>(
     () => [
-      {
-        id: 'select',
-        header: ({ table }) => (
-          <Checkbox
-            checked={table.getIsAllRowsSelected()}
-            indeterminate={table.getIsSomeRowsSelected()}
-            onChange={table.getToggleAllRowsSelectedHandler()}
-          />
-        ),
-        cell: ({ row }) => (
-          <Checkbox
-            checked={row.getIsSelected()}
-            disabled={!row.getCanSelect()}
-            indeterminate={row.getIsSomeSelected()}
-            onChange={row.getToggleSelectedHandler()}
-          />
-        )
-      },
       columnHelper.accessor('id', {
         header: 'ID',
         cell: ({ row }) => <Typography color='text.primary'>#{row.original.id}</Typography>
@@ -154,19 +123,14 @@ const MeasurementsTable = ({ measurementData }: { measurementData?: MeasurementT
     data,
     columns,
     filterFns: { fuzzy: fuzzyFilter },
-    state: { rowSelection, globalFilter },
+    state: { globalFilter },
     initialState: { pagination: { pageSize: 10 } },
-    enableRowSelection: true,
     globalFilterFn: fuzzyFilter,
-    onRowSelectionChange: setRowSelection,
     getCoreRowModel: getCoreRowModel(),
     onGlobalFilterChange: setGlobalFilter,
     getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
-    getFacetedMinMaxValues: getFacetedMinMaxValues()
+    getPaginationRowModel: getPaginationRowModel()
   })
 
   return (
@@ -184,9 +148,9 @@ const MeasurementsTable = ({ measurementData }: { measurementData?: MeasurementT
             color='primary'
             className='max-sm:is-full'
             startIcon={<i className='ri-add-line' />}
-            onClick={() => setDrawerOpen(true)}
+            onClick={() => setAddOpen(true)}
           >
-            Add Measurement
+            Add Organisation
           </Button>
         </CardContent>
         <div className='overflow-x-auto'>
@@ -220,22 +184,19 @@ const MeasurementsTable = ({ measurementData }: { measurementData?: MeasurementT
               <tbody>
                 <tr>
                   <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    No data available
+                    No organisations found
                   </td>
                 </tr>
               </tbody>
             ) : (
               <tbody>
-                {table
-                  .getRowModel()
-                  .rows.slice(0, table.getState().pagination.pageSize)
-                  .map(row => (
-                    <tr key={row.id} className={classnames({ selected: row.getIsSelected() })}>
-                      {row.getVisibleCells().map(cell => (
-                        <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
-                      ))}
-                    </tr>
-                  ))}
+                {table.getRowModel().rows.slice(0, table.getState().pagination.pageSize).map(row => (
+                  <tr key={row.id}>
+                    {row.getVisibleCells().map(cell => (
+                      <td key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                    ))}
+                  </tr>
+                ))}
               </tbody>
             )}
           </table>
@@ -251,14 +212,14 @@ const MeasurementsTable = ({ measurementData }: { measurementData?: MeasurementT
           onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))}
         />
       </Card>
-      <AddMeasurementDrawer
-        open={drawerOpen}
-        handleClose={() => setDrawerOpen(false)}
-        onCreated={measurement => setData(prev => [...prev, measurement])}
+      <AddOrganisationDrawer
+        open={addOpen}
+        handleClose={() => setAddOpen(false)}
+        onCreated={org => setData(prev => [...prev, org])}
       />
-      <EditMeasurementDrawer
+      <EditOrganisationDrawer
         open={Boolean(editTarget)}
-        measurement={editTarget}
+        organisation={editTarget}
         handleClose={() => setEditTarget(null)}
         onUpdated={handleUpdate}
       />
@@ -266,4 +227,4 @@ const MeasurementsTable = ({ measurementData }: { measurementData?: MeasurementT
   )
 }
 
-export default MeasurementsTable
+export default OrganisationsTable

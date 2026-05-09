@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography'
 
 import PerfectScrollbar from 'react-perfect-scrollbar'
 import { useForm, Controller } from 'react-hook-form'
+import { useEffect } from 'react'
 
 import type { MeasurementType } from '@/types/app/assessmentTypes'
 
@@ -16,15 +17,16 @@ const API_BASE = '/api'
 
 type Props = {
   open: boolean
+  measurement: MeasurementType | null
   handleClose: () => void
-  onCreated: (measurement: MeasurementType) => void
+  onUpdated: (measurement: MeasurementType) => void
 }
 
 type FormData = {
   name: string
 }
 
-const AddMeasurementDrawer = ({ open, handleClose, onCreated }: Props) => {
+const EditMeasurementDrawer = ({ open, measurement, handleClose, onUpdated }: Props) => {
   const {
     control,
     reset,
@@ -32,25 +34,25 @@ const AddMeasurementDrawer = ({ open, handleClose, onCreated }: Props) => {
     formState: { errors, isSubmitting }
   } = useForm<FormData>({ defaultValues: { name: '' } })
 
+  useEffect(() => {
+    if (measurement) reset({ name: measurement.name })
+  }, [measurement, reset])
+
   const onSubmit = async (data: FormData) => {
+    if (!measurement) return
+
     const res = await fetch(`${API_BASE}/measurements`, {
-      method: 'POST',
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: data.name })
+      body: JSON.stringify({ id: measurement.id, name: data.name })
     })
 
     if (res.ok) {
-      const created: MeasurementType = await res.json()
+      const updated: MeasurementType = await res.json()
 
-      onCreated(created)
-      reset()
+      onUpdated(updated)
       handleClose()
     }
-  }
-
-  const handleReset = () => {
-    reset()
-    handleClose()
   }
 
   return (
@@ -58,13 +60,13 @@ const AddMeasurementDrawer = ({ open, handleClose, onCreated }: Props) => {
       open={open}
       anchor='right'
       variant='temporary'
-      onClose={handleReset}
+      onClose={handleClose}
       ModalProps={{ keepMounted: true }}
       sx={{ '& .MuiDrawer-paper': { width: { xs: 300, sm: 400 } } }}
     >
       <div className='flex items-center justify-between pli-5 plb-4'>
-        <Typography variant='h5'>Add Measurement</Typography>
-        <IconButton size='small' onClick={handleReset}>
+        <Typography variant='h5'>Edit Measurement</Typography>
+        <IconButton size='small' onClick={handleClose}>
           <i className='ri-close-line text-2xl' />
         </IconButton>
       </div>
@@ -81,7 +83,6 @@ const AddMeasurementDrawer = ({ open, handleClose, onCreated }: Props) => {
                   {...field}
                   fullWidth
                   label='Name'
-                  placeholder='e.g. Sprint Test'
                   error={Boolean(errors.name)}
                   helperText={errors.name?.message}
                 />
@@ -89,9 +90,9 @@ const AddMeasurementDrawer = ({ open, handleClose, onCreated }: Props) => {
             />
             <div className='flex items-center gap-4'>
               <Button variant='contained' type='submit' disabled={isSubmitting}>
-                {isSubmitting ? 'Saving…' : 'Add'}
+                {isSubmitting ? 'Saving…' : 'Save'}
               </Button>
-              <Button variant='outlined' color='error' type='reset' onClick={handleReset}>
+              <Button variant='outlined' color='error' onClick={handleClose}>
                 Discard
               </Button>
             </div>
@@ -102,4 +103,4 @@ const AddMeasurementDrawer = ({ open, handleClose, onCreated }: Props) => {
   )
 }
 
-export default AddMeasurementDrawer
+export default EditMeasurementDrawer

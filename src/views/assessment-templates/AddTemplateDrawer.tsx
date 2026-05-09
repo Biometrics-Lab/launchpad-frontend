@@ -3,46 +3,51 @@
 import Button from '@mui/material/Button'
 import Drawer from '@mui/material/Drawer'
 import Divider from '@mui/material/Divider'
+import FormControl from '@mui/material/FormControl'
+import FormHelperText from '@mui/material/FormHelperText'
 import IconButton from '@mui/material/IconButton'
+import InputLabel from '@mui/material/InputLabel'
+import MenuItem from '@mui/material/MenuItem'
+import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 
 import PerfectScrollbar from 'react-perfect-scrollbar'
 import { useForm, Controller } from 'react-hook-form'
 
-import type { MeasurementType } from '@/types/app/assessmentTypes'
-
-const API_BASE = '/api'
+import type { AssessmentTemplateType } from '@/types/app/assessmentTemplateTypes'
+import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
 
 type Props = {
   open: boolean
+  sports: DictionaryEntry[]
   handleClose: () => void
-  onCreated: (measurement: MeasurementType) => void
+  onCreated: (template: AssessmentTemplateType) => void
 }
 
 type FormData = {
   name: string
+  sport: string
+  description: string
 }
 
-const AddMeasurementDrawer = ({ open, handleClose, onCreated }: Props) => {
+const AddTemplateDrawer = ({ open, sports, handleClose, onCreated }: Props) => {
   const {
     control,
     reset,
     handleSubmit,
     formState: { errors, isSubmitting }
-  } = useForm<FormData>({ defaultValues: { name: '' } })
+  } = useForm<FormData>({ defaultValues: { name: '', sport: '', description: '' } })
 
   const onSubmit = async (data: FormData) => {
-    const res = await fetch(`${API_BASE}/measurements`, {
+    const res = await fetch('/api/assessment-templates', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: data.name })
+      body: JSON.stringify(data)
     })
 
     if (res.ok) {
-      const created: MeasurementType = await res.json()
-
-      onCreated(created)
+      onCreated(await res.json())
       reset()
       handleClose()
     }
@@ -63,7 +68,7 @@ const AddMeasurementDrawer = ({ open, handleClose, onCreated }: Props) => {
       sx={{ '& .MuiDrawer-paper': { width: { xs: 300, sm: 400 } } }}
     >
       <div className='flex items-center justify-between pli-5 plb-4'>
-        <Typography variant='h5'>Add Measurement</Typography>
+        <Typography variant='h5'>Add Assessment Template</Typography>
         <IconButton size='small' onClick={handleReset}>
           <i className='ri-close-line text-2xl' />
         </IconButton>
@@ -81,17 +86,41 @@ const AddMeasurementDrawer = ({ open, handleClose, onCreated }: Props) => {
                   {...field}
                   fullWidth
                   label='Name'
-                  placeholder='e.g. Sprint Test'
                   error={Boolean(errors.name)}
                   helperText={errors.name?.message}
                 />
+              )}
+            />
+            <FormControl fullWidth error={Boolean(errors.sport)}>
+              <InputLabel>Sport</InputLabel>
+              <Controller
+                name='sport'
+                control={control}
+                rules={{ required: 'Sport is required' }}
+                render={({ field }) => (
+                  <Select {...field} label='Sport'>
+                    {sports.map(s => (
+                      <MenuItem key={s.name} value={s.name}>
+                        {s.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                )}
+              />
+              {errors.sport && <FormHelperText>{errors.sport.message}</FormHelperText>}
+            </FormControl>
+            <Controller
+              name='description'
+              control={control}
+              render={({ field }) => (
+                <TextField {...field} fullWidth label='Description' multiline rows={3} />
               )}
             />
             <div className='flex items-center gap-4'>
               <Button variant='contained' type='submit' disabled={isSubmitting}>
                 {isSubmitting ? 'Saving…' : 'Add'}
               </Button>
-              <Button variant='outlined' color='error' type='reset' onClick={handleReset}>
+              <Button variant='outlined' color='error' onClick={handleReset}>
                 Discard
               </Button>
             </div>
@@ -102,4 +131,4 @@ const AddMeasurementDrawer = ({ open, handleClose, onCreated }: Props) => {
   )
 }
 
-export default AddMeasurementDrawer
+export default AddTemplateDrawer

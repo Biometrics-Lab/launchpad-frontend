@@ -73,9 +73,31 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
         </MenuItem>
         <MenuSection label='Assessments data'>
           <SubMenu label='Assessments' icon={<i className='ri-body-scan-fill' />}>
-            <MenuItem href='/measurement'>
-              Measurements
-            </MenuItem>
+            <MenuItem href='/assessment-templates'>Assessment Templates</MenuItem>
+            <MenuItem href='/measurement'>Measurements</MenuItem>
+            <MenuItem href='/metric'>Metrics</MenuItem>
+            <MenuItem href='/data-sources'>Data Sources</MenuItem>
+          </SubMenu>
+        </MenuSection>
+        <MenuSection label='Models'>
+          <SubMenu label='Models' icon={<i className='ri-brain-line' />}>
+            <MenuItem href='/models'>Models</MenuItem>
+          </SubMenu>
+        </MenuSection>
+        <MenuSection label='People'>
+          <SubMenu label='People' icon={<i className='ri-group-line' />}>
+            <MenuItem href='/organisations'>Organisations</MenuItem>
+            <MenuItem href='/teams'>Teams</MenuItem>
+            <MenuItem href='/players'>Players</MenuItem>
+          </SubMenu>
+        </MenuSection>
+        <MenuSection label='Dictionaries'>
+          <SubMenu label='Dictionaries' icon={<i className='ri-book-2-line' />}>
+            <MenuItem href='/dictionaries/age-groups'>Age Groups</MenuItem>
+            <MenuItem href='/dictionaries/data-source-types'>Data Source Types</MenuItem>
+            <MenuItem href='/dictionaries/resource-types'>Resource Types</MenuItem>
+            <MenuItem href='/dictionaries/sports'>Sports</MenuItem>
+            <MenuItem href='/dictionaries/user-roles'>User Roles</MenuItem>
           </SubMenu>
         </MenuSection>
         <MenuSection label='Others'>

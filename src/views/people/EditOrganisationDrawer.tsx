@@ -1,5 +1,7 @@
 'use client'
 
+import { useEffect } from 'react'
+
 import Button from '@mui/material/Button'
 import Drawer from '@mui/material/Drawer'
 import Divider from '@mui/material/Divider'
@@ -10,21 +12,18 @@ import Typography from '@mui/material/Typography'
 import PerfectScrollbar from 'react-perfect-scrollbar'
 import { useForm, Controller } from 'react-hook-form'
 
-import type { MeasurementType } from '@/types/app/assessmentTypes'
-
-const API_BASE = '/api'
+import type { OrganisationType } from '@/types/app/playersTypes'
 
 type Props = {
   open: boolean
+  organisation: OrganisationType | null
   handleClose: () => void
-  onCreated: (measurement: MeasurementType) => void
+  onUpdated: (org: OrganisationType) => void
 }
 
-type FormData = {
-  name: string
-}
+type FormData = { name: string }
 
-const AddMeasurementDrawer = ({ open, handleClose, onCreated }: Props) => {
+const EditOrganisationDrawer = ({ open, organisation, handleClose, onUpdated }: Props) => {
   const {
     control,
     reset,
@@ -32,25 +31,23 @@ const AddMeasurementDrawer = ({ open, handleClose, onCreated }: Props) => {
     formState: { errors, isSubmitting }
   } = useForm<FormData>({ defaultValues: { name: '' } })
 
+  useEffect(() => {
+    if (organisation) reset({ name: organisation.name })
+  }, [organisation, reset])
+
   const onSubmit = async (data: FormData) => {
-    const res = await fetch(`${API_BASE}/measurements`, {
-      method: 'POST',
+    if (!organisation) return
+
+    const res = await fetch('/api/organisations', {
+      method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: data.name })
+      body: JSON.stringify({ id: organisation.id, ...data })
     })
 
     if (res.ok) {
-      const created: MeasurementType = await res.json()
-
-      onCreated(created)
-      reset()
+      onUpdated(await res.json())
       handleClose()
     }
-  }
-
-  const handleReset = () => {
-    reset()
-    handleClose()
   }
 
   return (
@@ -58,13 +55,13 @@ const AddMeasurementDrawer = ({ open, handleClose, onCreated }: Props) => {
       open={open}
       anchor='right'
       variant='temporary'
-      onClose={handleReset}
+      onClose={handleClose}
       ModalProps={{ keepMounted: true }}
       sx={{ '& .MuiDrawer-paper': { width: { xs: 300, sm: 400 } } }}
     >
       <div className='flex items-center justify-between pli-5 plb-4'>
-        <Typography variant='h5'>Add Measurement</Typography>
-        <IconButton size='small' onClick={handleReset}>
+        <Typography variant='h5'>Edit Organisation</Typography>
+        <IconButton size='small' onClick={handleClose}>
           <i className='ri-close-line text-2xl' />
         </IconButton>
       </div>
@@ -81,7 +78,6 @@ const AddMeasurementDrawer = ({ open, handleClose, onCreated }: Props) => {
                   {...field}
                   fullWidth
                   label='Name'
-                  placeholder='e.g. Sprint Test'
                   error={Boolean(errors.name)}
                   helperText={errors.name?.message}
                 />
@@ -89,9 +85,9 @@ const AddMeasurementDrawer = ({ open, handleClose, onCreated }: Props) => {
             />
             <div className='flex items-center gap-4'>
               <Button variant='contained' type='submit' disabled={isSubmitting}>
-                {isSubmitting ? 'Saving…' : 'Add'}
+                {isSubmitting ? 'Saving…' : 'Save'}
               </Button>
-              <Button variant='outlined' color='error' type='reset' onClick={handleReset}>
+              <Button variant='outlined' color='error' onClick={handleClose}>
                 Discard
               </Button>
             </div>
@@ -102,4 +98,4 @@ const AddMeasurementDrawer = ({ open, handleClose, onCreated }: Props) => {
   )
 }
 
-export default AddMeasurementDrawer
+export default EditOrganisationDrawer
