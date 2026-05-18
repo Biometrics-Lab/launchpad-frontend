@@ -23,7 +23,7 @@ import type { RankingInfo } from '@tanstack/match-sorter-utils'
 import { rankItem } from '@tanstack/match-sorter-utils'
 
 import type { RepMetricType } from '@/types/app/assessmentTypes'
-import type { MetricType } from '@/types/app/metricTypes'
+import type { ConditionalMetricType } from '@/types/app/conditionTypes'
 import AddRepMetricDrawer from './AddRepMetricDrawer'
 import EditRepMetricDrawer from './EditRepMetricDrawer'
 import tableStyles from '@core/styles/table.module.css'
@@ -44,15 +44,15 @@ const columnHelper = createColumnHelper<RepMetricType>()
 type Props = {
   repId: number
   repMetrics: RepMetricType[]
-  metrics: MetricType[]
+  conditionalMetrics: ConditionalMetricType[]
 }
 
-const RepMetricsTable = ({ repId, repMetrics, metrics }: Props) => {
+const RepMetricsTable = ({ repId, repMetrics, conditionalMetrics }: Props) => {
   const [addOpen, setAddOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<RepMetricType | null>(null)
   const [data, setData] = useState(repMetrics)
 
-  const metricMap = useMemo(() => Object.fromEntries(metrics.map(m => [m.id, m.name])), [metrics])
+  const conditionalMetricMap = useMemo(() => Object.fromEntries(conditionalMetrics.map(cm => [cm.id, cm.name])), [conditionalMetrics])
 
   const handleDelete = async (id: number) => {
     await fetch(`/api/rep-metrics/${id}`, { method: 'DELETE' })
@@ -66,9 +66,9 @@ const RepMetricsTable = ({ repId, repMetrics, metrics }: Props) => {
   const columns = useMemo<ColumnDef<RepMetricType, any>[]>(
     () => [
       columnHelper.accessor('id', { header: 'ID', cell: ({ row }) => <Typography color='text.primary'>#{row.original.id}</Typography> }),
-      columnHelper.accessor('metricId', {
-        header: 'Metric',
-        cell: ({ row }) => <Typography color='text.primary' className='font-medium'>{metricMap[row.original.metricId] ?? `#${row.original.metricId}`}</Typography>
+      columnHelper.accessor('conditionalMetricId', {
+        header: 'Conditional Metric',
+        cell: ({ row }) => <Typography color='text.primary' className='font-medium'>{conditionalMetricMap[row.original.conditionalMetricId] ?? `#${row.original.conditionalMetricId}`}</Typography>
       }),
       {
         id: 'value',
@@ -87,7 +87,7 @@ const RepMetricsTable = ({ repId, repMetrics, metrics }: Props) => {
       }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [metricMap]
+    [conditionalMetricMap]
   )
 
   const table = useReactTable({
@@ -128,8 +128,8 @@ const RepMetricsTable = ({ repId, repMetrics, metrics }: Props) => {
         </div>
         <TablePagination rowsPerPageOptions={[10, 25]} component='div' className='border-bs' count={data.length} rowsPerPage={table.getState().pagination.pageSize} page={table.getState().pagination.pageIndex} onPageChange={(_, page) => table.setPageIndex(page)} onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))} />
       </Card>
-      <AddRepMetricDrawer open={addOpen} repId={repId} metrics={metrics} handleClose={() => setAddOpen(false)} onCreated={rm => setData(prev => [...prev, rm])} />
-      <EditRepMetricDrawer open={Boolean(editTarget)} repMetric={editTarget} metrics={metrics} handleClose={() => setEditTarget(null)} onUpdated={handleUpdate} />
+      <AddRepMetricDrawer open={addOpen} repId={repId} conditionalMetrics={conditionalMetrics} handleClose={() => setAddOpen(false)} onCreated={rm => setData(prev => [...prev, rm])} />
+      <EditRepMetricDrawer open={Boolean(editTarget)} repMetric={editTarget} conditionalMetrics={conditionalMetrics} handleClose={() => setEditTarget(null)} onUpdated={handleUpdate} />
     </>
   )
 }

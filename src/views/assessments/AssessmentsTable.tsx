@@ -32,6 +32,7 @@ import type { AssessmentType } from '@/types/app/assessmentTypes'
 import type { AssessmentTemplateType } from '@/types/app/assessmentTemplateTypes'
 import type { PlayerType } from '@/types/app/playersTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
+import type { ConditionType } from '@/types/app/conditionTypes'
 import AddAssessmentDrawer from './AddAssessmentDrawer'
 import EditAssessmentDrawer from './EditAssessmentDrawer'
 import tableStyles from '@core/styles/table.module.css'
@@ -70,9 +71,10 @@ type Props = {
   players: PlayerType[]
   sports: DictionaryEntry[]
   templates: AssessmentTemplateType[]
+  conditions: ConditionType[]
 }
 
-const AssessmentsTable = ({ assessments, players, sports, templates }: Props) => {
+const AssessmentsTable = ({ assessments, players, sports, templates, conditions }: Props) => {
   const router = useRouter()
   const [addOpen, setAddOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<AssessmentType | null>(null)
@@ -235,6 +237,7 @@ const AssessmentsTable = ({ assessments, players, sports, templates }: Props) =>
         players={players}
         sports={sports}
         templates={templates}
+        conditions={conditions}
         handleClose={() => setAddOpen(false)}
         onCreated={a => setData(prev => [...prev, a])}
       />
@@ -244,6 +247,7 @@ const AssessmentsTable = ({ assessments, players, sports, templates }: Props) =>
         players={players}
         sports={sports}
         templates={templates}
+        conditions={conditions}
         handleClose={() => setEditTarget(null)}
         onUpdated={handleUpdate}
       />

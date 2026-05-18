@@ -23,7 +23,7 @@ import type { RankingInfo } from '@tanstack/match-sorter-utils'
 import { rankItem } from '@tanstack/match-sorter-utils'
 
 import type { AssessmentMetricType } from '@/types/app/assessmentTypes'
-import type { MetricType } from '@/types/app/metricTypes'
+import type { ConditionalMetricType } from '@/types/app/conditionTypes'
 import type { DataSourceType } from '@/types/app/dataSourceTypes'
 import AddAssessmentMetricDrawer from './AddAssessmentMetricDrawer'
 import EditAssessmentMetricDrawer from './EditAssessmentMetricDrawer'
@@ -45,16 +45,16 @@ const columnHelper = createColumnHelper<AssessmentMetricType>()
 type Props = {
   assessmentId: number
   assessmentMetrics: AssessmentMetricType[]
-  metrics: MetricType[]
+  conditionalMetrics: ConditionalMetricType[]
   dataSources: DataSourceType[]
 }
 
-const AssessmentMetricsTable = ({ assessmentId, assessmentMetrics, metrics, dataSources }: Props) => {
+const AssessmentMetricsTable = ({ assessmentId, assessmentMetrics, conditionalMetrics, dataSources }: Props) => {
   const [addOpen, setAddOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<AssessmentMetricType | null>(null)
   const [data, setData] = useState(assessmentMetrics)
 
-  const metricMap = useMemo(() => Object.fromEntries(metrics.map(m => [m.id, m.name])), [metrics])
+  const conditionalMetricMap = useMemo(() => Object.fromEntries(conditionalMetrics.map(cm => [cm.id, cm.name])), [conditionalMetrics])
   const dataSourceMap = useMemo(() => Object.fromEntries(dataSources.map(ds => [ds.id, ds.name])), [dataSources])
 
   const handleDelete = async (id: number) => {
@@ -72,11 +72,11 @@ const AssessmentMetricsTable = ({ assessmentId, assessmentMetrics, metrics, data
         header: 'ID',
         cell: ({ row }) => <Typography color='text.primary'>#{row.original.id}</Typography>
       }),
-      columnHelper.accessor('metricId', {
-        header: 'Metric',
+      columnHelper.accessor('conditionalMetricId', {
+        header: 'Conditional Metric',
         cell: ({ row }) => (
           <Typography color='text.primary' className='font-medium'>
-            {metricMap[row.original.metricId] ?? `#${row.original.metricId}`}
+            {conditionalMetricMap[row.original.conditionalMetricId] ?? `#${row.original.conditionalMetricId}`}
           </Typography>
         )
       }),
@@ -122,7 +122,7 @@ const AssessmentMetricsTable = ({ assessmentId, assessmentMetrics, metrics, data
       }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [metricMap, dataSourceMap]
+    [conditionalMetricMap, dataSourceMap]
   )
 
   const table = useReactTable({
@@ -198,7 +198,7 @@ const AssessmentMetricsTable = ({ assessmentId, assessmentMetrics, metrics, data
       <AddAssessmentMetricDrawer
         open={addOpen}
         assessmentId={assessmentId}
-        metrics={metrics}
+        conditionalMetrics={conditionalMetrics}
         dataSources={dataSources}
         handleClose={() => setAddOpen(false)}
         onCreated={am => setData(prev => [...prev, am])}
@@ -206,7 +206,7 @@ const AssessmentMetricsTable = ({ assessmentId, assessmentMetrics, metrics, data
       <EditAssessmentMetricDrawer
         open={Boolean(editTarget)}
         assessmentMetric={editTarget}
-        metrics={metrics}
+        conditionalMetrics={conditionalMetrics}
         dataSources={dataSources}
         handleClose={() => setEditTarget(null)}
         onUpdated={handleUpdate}

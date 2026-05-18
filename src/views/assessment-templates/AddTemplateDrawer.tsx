@@ -17,10 +17,12 @@ import { useForm, Controller } from 'react-hook-form'
 
 import type { AssessmentTemplateType } from '@/types/app/assessmentTemplateTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
+import type { ConditionType } from '@/types/app/conditionTypes'
 
 type Props = {
   open: boolean
   sports: DictionaryEntry[]
+  conditions: ConditionType[]
   handleClose: () => void
   onCreated: (template: AssessmentTemplateType) => void
 }
@@ -29,21 +31,22 @@ type FormData = {
   name: string
   sport: string
   description: string
+  conditionId: number
 }
 
-const AddTemplateDrawer = ({ open, sports, handleClose, onCreated }: Props) => {
+const AddTemplateDrawer = ({ open, sports, conditions, handleClose, onCreated }: Props) => {
   const {
     control,
     reset,
     handleSubmit,
     formState: { errors, isSubmitting }
-  } = useForm<FormData>({ defaultValues: { name: '', sport: '', description: '' } })
+  } = useForm<FormData>({ defaultValues: { name: '', sport: '', description: '', conditionId: 0 } })
 
   const onSubmit = async (data: FormData) => {
     const res = await fetch('/api/assessment-templates', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify({ ...data, conditionId: data.conditionId || null })
     })
 
     if (res.ok) {
@@ -116,6 +119,21 @@ const AddTemplateDrawer = ({ open, sports, handleClose, onCreated }: Props) => {
                 <TextField {...field} fullWidth label='Description' multiline rows={3} />
               )}
             />
+            <FormControl fullWidth>
+              <InputLabel>Condition</InputLabel>
+              <Controller
+                name='conditionId'
+                control={control}
+                render={({ field }) => (
+                  <Select {...field} label='Condition'>
+                    <MenuItem value={0}>None</MenuItem>
+                    {conditions.map(c => (
+                      <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+                    ))}
+                  </Select>
+                )}
+              />
+            </FormControl>
             <div className='flex items-center gap-4'>
               <Button variant='contained' type='submit' disabled={isSubmitting}>
                 {isSubmitting ? 'Saving…' : 'Add'}

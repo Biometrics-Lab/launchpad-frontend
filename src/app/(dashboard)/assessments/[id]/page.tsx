@@ -11,7 +11,7 @@ import AssessmentResourcesTable from '@views/assessments/AssessmentResourcesTabl
 import SessionsTable from '@views/assessments/SessionsTable'
 import type { AssessmentType, AssessmentMetricType, AssessmentResourceType, SessionType } from '@/types/app/assessmentTypes'
 import type { AssessmentTemplateType } from '@/types/app/assessmentTemplateTypes'
-import type { MetricType } from '@/types/app/metricTypes'
+import type { ConditionalMetricType } from '@/types/app/conditionTypes'
 import type { DataSourceType } from '@/types/app/dataSourceTypes'
 import type { PlayerType } from '@/types/app/playersTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
@@ -37,7 +37,7 @@ const AssessmentDetailPage = async ({ params }: Props) => {
     allAssessmentMetrics,
     allAssessmentResources,
     allSessions,
-    metrics,
+    allConditionalMetrics,
     dataSources,
     resourceTypes,
     players,
@@ -47,7 +47,7 @@ const AssessmentDetailPage = async ({ params }: Props) => {
     fetchJson<AssessmentMetricType[]>(`${API_BASE}/assessmentMetrics`, []),
     fetchJson<AssessmentResourceType[]>(`${API_BASE}/assessmentResources`, []),
     fetchJson<SessionType[]>(`${API_BASE}/sessions`, []),
-    fetchJson<MetricType[]>(`${API_BASE}/metrics`, []),
+    fetchJson<ConditionalMetricType[]>(`${API_BASE}/conditionalMetrics`, []),
     fetchJson<DataSourceType[]>(`${API_BASE}/dataSources`, []),
     fetchJson<DictionaryEntry[]>(`${API_BASE}/resourceTypeDictionaries`, []),
     fetchJson<PlayerType[]>(`${API_BASE}/players`, []),
@@ -60,6 +60,10 @@ const AssessmentDetailPage = async ({ params }: Props) => {
   const assessmentMetrics = allAssessmentMetrics.filter(am => am.assessmentId === numericId)
   const assessmentResources = allAssessmentResources.filter(ar => ar.assessmentId === numericId)
   const sessions = allSessions.filter(s => s.assessmentId === numericId)
+
+  const conditionalMetrics = assessment.conditionId
+    ? allConditionalMetrics.filter(cm => cm.conditionId === assessment.conditionId)
+    : allConditionalMetrics
 
   const player = players.find(p => p.id === assessment.playerId)
   const template = templates.find(t => t.id === assessment.templateId)
@@ -85,7 +89,7 @@ const AssessmentDetailPage = async ({ params }: Props) => {
       <AssessmentMetricsTable
         assessmentId={numericId}
         assessmentMetrics={assessmentMetrics}
-        metrics={metrics}
+        conditionalMetrics={conditionalMetrics}
         dataSources={dataSources}
       />
       <AssessmentResourcesTable

@@ -8,7 +8,7 @@ import CardContent from '@mui/material/CardContent'
 
 import TemplateMetricsTable from '@views/assessment-templates/TemplateMetricsTable'
 import type { AssessmentTemplateType, TemplateMetricType } from '@/types/app/assessmentTemplateTypes'
-import type { MetricType } from '@/types/app/metricTypes'
+import type { ConditionalMetricType } from '@/types/app/conditionTypes'
 import type { DataSourceType } from '@/types/app/dataSourceTypes'
 
 const API_BASE = 'http://localhost:8080/api/v1'
@@ -34,9 +34,9 @@ async function getTemplateMetrics(templateId: string): Promise<TemplateMetricTyp
   } catch { return [] }
 }
 
-async function getMetrics(): Promise<MetricType[]> {
+async function getAllConditionalMetrics(): Promise<ConditionalMetricType[]> {
   try {
-    const res = await fetch(`${API_BASE}/metrics`, { headers: HEADERS, cache: 'no-store' })
+    const res = await fetch(`${API_BASE}/conditionalMetrics`, { headers: HEADERS, cache: 'no-store' })
 
     return res.ok ? res.json() : []
   } catch { return [] }
@@ -54,14 +54,18 @@ type Props = { params: Promise<{ id: string }> }
 
 const AssessmentTemplateDetailPage = async ({ params }: Props) => {
   const { id } = await params
-  const [template, templateMetrics, metrics, dataSources] = await Promise.all([
+  const [template, templateMetrics, allConditionalMetrics, dataSources] = await Promise.all([
     getTemplate(id),
     getTemplateMetrics(id),
-    getMetrics(),
+    getAllConditionalMetrics(),
     getDataSources()
   ])
 
   if (!template) notFound()
+
+  const conditionalMetrics = template.conditionId
+    ? allConditionalMetrics.filter(cm => cm.conditionId === template.conditionId)
+    : allConditionalMetrics
 
   return (
     <div className='flex flex-col gap-6'>
@@ -83,7 +87,7 @@ const AssessmentTemplateDetailPage = async ({ params }: Props) => {
       <TemplateMetricsTable
         templateId={template.id}
         templateMetrics={templateMetrics}
-        metrics={metrics}
+        conditionalMetrics={conditionalMetrics}
         dataSources={dataSources}
       />
     </div>

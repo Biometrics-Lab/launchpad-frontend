@@ -20,6 +20,7 @@ import type { AssessmentType } from '@/types/app/assessmentTypes'
 import type { AssessmentTemplateType } from '@/types/app/assessmentTemplateTypes'
 import type { PlayerType } from '@/types/app/playersTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
+import type { ConditionType } from '@/types/app/conditionTypes'
 
 type Props = {
   open: boolean
@@ -27,6 +28,7 @@ type Props = {
   players: PlayerType[]
   sports: DictionaryEntry[]
   templates: AssessmentTemplateType[]
+  conditions: ConditionType[]
   handleClose: () => void
   onUpdated: (a: AssessmentType) => void
 }
@@ -35,18 +37,19 @@ type FormData = {
   playerId: number
   sport: string
   templateId: number
+  conditionId: number
 }
 
-const EditAssessmentDrawer = ({ open, assessment, players, sports, templates, handleClose, onUpdated }: Props) => {
+const EditAssessmentDrawer = ({ open, assessment, players, sports, templates, conditions, handleClose, onUpdated }: Props) => {
   const {
     control,
     reset,
     handleSubmit,
     formState: { errors, isSubmitting }
-  } = useForm<FormData>({ defaultValues: { playerId: 0, sport: '', templateId: 0 } })
+  } = useForm<FormData>({ defaultValues: { playerId: 0, sport: '', templateId: 0, conditionId: 0 } })
 
   useEffect(() => {
-    if (assessment) reset({ playerId: assessment.playerId, sport: assessment.sport, templateId: assessment.templateId })
+    if (assessment) reset({ playerId: assessment.playerId, sport: assessment.sport, templateId: assessment.templateId, conditionId: assessment.conditionId ?? 0 })
   }, [assessment, reset])
 
   const onSubmit = async (data: FormData) => {
@@ -54,7 +57,7 @@ const EditAssessmentDrawer = ({ open, assessment, players, sports, templates, ha
     const res = await fetch('/api/assessments', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: assessment.id, ...data })
+      body: JSON.stringify({ id: assessment.id, ...data, conditionId: data.conditionId || null })
     })
     if (res.ok) {
       onUpdated(await res.json())
@@ -128,6 +131,21 @@ const EditAssessmentDrawer = ({ open, assessment, players, sports, templates, ha
                 )}
               />
               {errors.templateId && <FormHelperText>{errors.templateId.message}</FormHelperText>}
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>Condition</InputLabel>
+              <Controller
+                name='conditionId'
+                control={control}
+                render={({ field }) => (
+                  <Select {...field} label='Condition'>
+                    <MenuItem value={0}>None</MenuItem>
+                    {conditions.map(c => (
+                      <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+                    ))}
+                  </Select>
+                )}
+              />
             </FormControl>
             <div className='flex items-center gap-4'>
               <Button variant='contained' type='submit' disabled={isSubmitting}>

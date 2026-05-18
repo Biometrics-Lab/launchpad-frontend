@@ -15,36 +15,36 @@ import PerfectScrollbar from 'react-perfect-scrollbar'
 import { useForm, Controller } from 'react-hook-form'
 
 import type { TemplateMetricType } from '@/types/app/assessmentTemplateTypes'
-import type { MetricType } from '@/types/app/metricTypes'
+import type { ConditionalMetricType } from '@/types/app/conditionTypes'
 import type { DataSourceType } from '@/types/app/dataSourceTypes'
 
 type Props = {
   open: boolean
   templateId: number
-  metrics: MetricType[]
+  conditionalMetrics: ConditionalMetricType[]
   dataSources: DataSourceType[]
   handleClose: () => void
   onCreated: (tm: TemplateMetricType) => void
 }
 
 type FormData = {
-  metricId: number
-  sourceId: number
+  conditionalMetricId: number
+  dataSourceId: number
 }
 
-const AddTemplateMetricDrawer = ({ open, templateId, metrics, dataSources, handleClose, onCreated }: Props) => {
+const AddTemplateMetricDrawer = ({ open, templateId, conditionalMetrics, dataSources, handleClose, onCreated }: Props) => {
   const {
     control,
     reset,
     handleSubmit,
     formState: { errors, isSubmitting }
-  } = useForm<FormData>({ defaultValues: { metricId: 0, sourceId: 0 } })
+  } = useForm<FormData>({ defaultValues: { conditionalMetricId: 0, dataSourceId: 0 } })
 
   const onSubmit = async (data: FormData) => {
     const res = await fetch('/api/template-metrics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ templateId, ...data })
+      body: JSON.stringify({ templateId, conditionalMetricId: data.conditionalMetricId, sourceId: data.dataSourceId, dataSourceId: data.dataSourceId })
     })
 
     if (res.ok) {
@@ -78,28 +78,28 @@ const AddTemplateMetricDrawer = ({ open, templateId, metrics, dataSources, handl
       <PerfectScrollbar options={{ wheelPropagation: false, suppressScrollX: true }}>
         <div className='p-5'>
           <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-5'>
-            <FormControl fullWidth error={Boolean(errors.metricId)}>
-              <InputLabel>Metric</InputLabel>
+            <FormControl fullWidth error={Boolean(errors.conditionalMetricId)}>
+              <InputLabel>Conditional Metric</InputLabel>
               <Controller
-                name='metricId'
+                name='conditionalMetricId'
                 control={control}
-                rules={{ validate: v => v !== 0 || 'Metric is required' }}
+                rules={{ validate: v => v !== 0 || 'Conditional Metric is required' }}
                 render={({ field }) => (
-                  <Select {...field} label='Metric'>
-                    {metrics.map(m => (
-                      <MenuItem key={m.id} value={m.id}>
-                        {m.name}
+                  <Select {...field} label='Conditional Metric'>
+                    {conditionalMetrics.map(cm => (
+                      <MenuItem key={cm.id} value={cm.id}>
+                        {cm.name}
                       </MenuItem>
                     ))}
                   </Select>
                 )}
               />
-              {errors.metricId && <FormHelperText>{errors.metricId.message}</FormHelperText>}
+              {errors.conditionalMetricId && <FormHelperText>{errors.conditionalMetricId.message}</FormHelperText>}
             </FormControl>
-            <FormControl fullWidth error={Boolean(errors.sourceId)}>
+            <FormControl fullWidth error={Boolean(errors.dataSourceId)}>
               <InputLabel>Data Source</InputLabel>
               <Controller
-                name='sourceId'
+                name='dataSourceId'
                 control={control}
                 rules={{ validate: v => v !== 0 || 'Data Source is required' }}
                 render={({ field }) => (
@@ -112,7 +112,7 @@ const AddTemplateMetricDrawer = ({ open, templateId, metrics, dataSources, handl
                   </Select>
                 )}
               />
-              {errors.sourceId && <FormHelperText>{errors.sourceId.message}</FormHelperText>}
+              {errors.dataSourceId && <FormHelperText>{errors.dataSourceId.message}</FormHelperText>}
             </FormControl>
             <div className='flex items-center gap-4'>
               <Button variant='contained' type='submit' disabled={isSubmitting}>
