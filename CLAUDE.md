@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 https://demos.themeselection.com/materio-mui-nextjs-admin-template/documentation/
 
+## Ticket Workflow Rules
+
+- Before starting any ticket, fetch it from Notion and check the **"Blocked by"** relation property. If any blocker is not Done, tell the user which tickets must be completed first and do not start implementation.
+
 ## Commands
 
 ```bash

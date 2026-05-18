@@ -1,31 +1,34 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 
 import Card from '@mui/material/Card'
-import CardHeader from '@mui/material/CardHeader'
+import CardContent from '@mui/material/CardContent'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
+import TextField from '@mui/material/TextField'
 import TablePagination from '@mui/material/TablePagination'
+import IconButton from '@mui/material/IconButton'
+import type { TextFieldProps } from '@mui/material/TextField'
 
 import classnames from 'classnames'
+import { rankItem } from '@tanstack/match-sorter-utils'
 import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
   useReactTable,
+  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel
 } from '@tanstack/react-table'
 import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
-import { rankItem } from '@tanstack/match-sorter-utils'
 
-import type { SessionMetricType } from '@/types/app/assessmentTypes'
-import type { ConditionalMetricType } from '@/types/app/conditionTypes'
-import AddSessionMetricDrawer from './AddSessionMetricDrawer'
-import EditSessionMetricDrawer from './EditSessionMetricDrawer'
+import type { ConditionalMetricType, ConditionType } from '@/types/app/conditionTypes'
+import type { MetricType } from '@/types/app/metricTypes'
+import AddConditionalMetricDrawer from './AddConditionalMetricDrawer'
+import EditConditionalMetricDrawer from './EditConditionalMetricDrawer'
 import tableStyles from '@core/styles/table.module.css'
 
 declare module '@tanstack/table-core' {
@@ -39,47 +42,72 @@ const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   return itemRank.passed
 }
 
-const columnHelper = createColumnHelper<SessionMetricType>()
-
-type Props = {
-  session1Id: number
-  sessionMetrics: SessionMetricType[]
-  conditionalMetrics: ConditionalMetricType[]
+const DebouncedInput = ({
+  value: initialValue,
+  onChange,
+  debounce = 500,
+  ...props
+}: { value: string | number; onChange: (value: string | number) => void; debounce?: number } & Omit<TextFieldProps, 'onChange'>) => {
+  const [value, setValue] = useState(initialValue)
+  useEffect(() => setValue(initialValue), [initialValue])
+  useEffect(() => {
+    const timeout = setTimeout(() => onChange(value), debounce)
+    return () => clearTimeout(timeout)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
+  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
 }
 
-const SessionMetricsTable = ({ session1Id, sessionMetrics, conditionalMetrics }: Props) => {
-  const [addOpen, setAddOpen] = useState(false)
-  const [editTarget, setEditTarget] = useState<SessionMetricType | null>(null)
-  const [data, setData] = useState(sessionMetrics)
+const columnHelper = createColumnHelper<ConditionalMetricType>()
 
-  const conditionalMetricMap = useMemo(() => Object.fromEntries(conditionalMetrics.map(cm => [cm.id, cm.name])), [conditionalMetrics])
+type Props = {
+  conditionalMetricData: ConditionalMetricType[]
+  conditions: ConditionType[]
+  metrics: MetricType[]
+}
+
+const ConditionalMetricsTable = ({ conditionalMetricData, conditions, metrics }: Props) => {
+  const [addOpen, setAddOpen] = useState(false)
+  const [editTarget, setEditTarget] = useState<ConditionalMetricType | null>(null)
+  const [data, setData] = useState(conditionalMetricData)
+  const [globalFilter, setGlobalFilter] = useState('')
+
+  const conditionMap = useMemo(() => Object.fromEntries(conditions.map(c => [c.id, c.name])), [conditions])
+  const metricMap = useMemo(() => Object.fromEntries(metrics.map(m => [m.id, m.name])), [metrics])
 
   const handleDelete = async (id: number) => {
-    await fetch(`/api/session-metrics/${id}`, { method: 'DELETE' })
-    setData(prev => prev.filter(sm => sm.id !== id))
+    await fetch(`/api/conditional-metrics/${id}`, { method: 'DELETE' })
+    setData(prev => prev.filter(cm => cm.id !== id))
   }
 
-  const handleUpdate = (updated: SessionMetricType) => {
-    setData(prev => prev.map(sm => (sm.id === updated.id ? updated : sm)))
+  const handleUpdate = (updated: ConditionalMetricType) => {
+    setData(prev => prev.map(cm => (cm.id === updated.id ? updated : cm)))
   }
 
-  const columns = useMemo<ColumnDef<SessionMetricType, any>[]>(
+  const columns = useMemo<ColumnDef<ConditionalMetricType, any>[]>(
     () => [
       columnHelper.accessor('id', {
         header: 'ID',
         cell: ({ row }) => <Typography color='text.primary'>#{row.original.id}</Typography>
       }),
-      columnHelper.accessor('conditionalMetricId', {
-        header: 'Conditional Metric',
+      columnHelper.accessor('name', {
+        header: 'Name',
         cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {conditionalMetricMap[row.original.conditionalMetricId] ?? `#${row.original.conditionalMetricId}`}
-          </Typography>
+          <Typography color='text.primary' className='font-medium'>{row.original.name}</Typography>
         )
       }),
-      { id: 'minValue', header: 'Min', cell: ({ row }) => <Typography color='text.secondary'>{row.original.minValue ?? '—'}</Typography> },
-      { id: 'maxValue', header: 'Max', cell: ({ row }) => <Typography color='text.secondary'>{row.original.maxValue ?? '—'}</Typography> },
-      { id: 'avgValue', header: 'Avg', cell: ({ row }) => <Typography color='text.secondary'>{row.original.avgValue ?? '—'}</Typography> },
+      columnHelper.accessor('conditionId', {
+        header: 'Condition',
+        cell: ({ row }) => (
+          <Typography color='text.secondary'>{conditionMap[row.original.conditionId] ?? `#${row.original.conditionId}`}</Typography>
+        )
+      }),
+      columnHelper.accessor('metricId', {
+        header: 'Metric',
+        cell: ({ row }) => (
+          <Typography color='text.secondary'>{metricMap[row.original.metricId] ?? `#${row.original.metricId}`}</Typography>
+        )
+      }),
       {
         id: 'actions',
         header: 'Actions',
@@ -96,15 +124,19 @@ const SessionMetricsTable = ({ session1Id, sessionMetrics, conditionalMetrics }:
       }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [conditionalMetricMap]
+    [conditionMap, metricMap]
   )
 
   const table = useReactTable({
     data,
     columns,
     filterFns: { fuzzy: fuzzyFilter },
+    state: { globalFilter },
     initialState: { pagination: { pageSize: 10 } },
+    globalFilterFn: fuzzyFilter,
     getCoreRowModel: getCoreRowModel(),
+    onGlobalFilterChange: setGlobalFilter,
+    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel()
   })
@@ -112,14 +144,23 @@ const SessionMetricsTable = ({ session1Id, sessionMetrics, conditionalMetrics }:
   return (
     <>
       <Card>
-        <CardHeader
-          title='Session Metrics'
-          action={
-            <Button variant='contained' size='small' startIcon={<i className='ri-add-line' />} onClick={() => setAddOpen(true)}>
-              Add Metric
-            </Button>
-          }
-        />
+        <CardContent className='flex justify-between flex-wrap max-sm:flex-col sm:items-center gap-4'>
+          <DebouncedInput
+            value={globalFilter ?? ''}
+            onChange={value => setGlobalFilter(String(value))}
+            placeholder='Search'
+            className='max-sm:is-full'
+          />
+          <Button
+            variant='contained'
+            color='primary'
+            className='max-sm:is-full'
+            startIcon={<i className='ri-add-line' />}
+            onClick={() => setAddOpen(true)}
+          >
+            Add Conditional Metric
+          </Button>
+        </CardContent>
         <div className='overflow-x-auto'>
           <table className={tableStyles.table}>
             <thead>
@@ -141,9 +182,9 @@ const SessionMetricsTable = ({ session1Id, sessionMetrics, conditionalMetrics }:
                 </tr>
               ))}
             </thead>
-            {table.getRowModel().rows.length === 0 ? (
+            {table.getFilteredRowModel().rows.length === 0 ? (
               <tbody>
-                <tr><td colSpan={table.getVisibleFlatColumns().length} className='text-center'>No metrics yet</td></tr>
+                <tr><td colSpan={table.getVisibleFlatColumns().length} className='text-center'>No data available</td></tr>
               </tbody>
             ) : (
               <tbody>
@@ -159,27 +200,28 @@ const SessionMetricsTable = ({ session1Id, sessionMetrics, conditionalMetrics }:
           </table>
         </div>
         <TablePagination
-          rowsPerPageOptions={[10, 25]}
+          rowsPerPageOptions={[10, 25, 50]}
           component='div'
           className='border-bs'
-          count={data.length}
+          count={table.getFilteredRowModel().rows.length}
           rowsPerPage={table.getState().pagination.pageSize}
           page={table.getState().pagination.pageIndex}
           onPageChange={(_, page) => table.setPageIndex(page)}
           onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))}
         />
       </Card>
-      <AddSessionMetricDrawer
+      <AddConditionalMetricDrawer
         open={addOpen}
-        session1Id={session1Id}
-        conditionalMetrics={conditionalMetrics}
+        conditions={conditions}
+        metrics={metrics}
         handleClose={() => setAddOpen(false)}
-        onCreated={sm => setData(prev => [...prev, sm])}
+        onCreated={cm => setData(prev => [...prev, cm])}
       />
-      <EditSessionMetricDrawer
+      <EditConditionalMetricDrawer
         open={Boolean(editTarget)}
-        sessionMetric={editTarget}
-        conditionalMetrics={conditionalMetrics}
+        conditionalMetric={editTarget}
+        conditions={conditions}
+        metrics={metrics}
         handleClose={() => setEditTarget(null)}
         onUpdated={handleUpdate}
       />
@@ -187,4 +229,4 @@ const SessionMetricsTable = ({ session1Id, sessionMetrics, conditionalMetrics }:
   )
 }
 
-export default SessionMetricsTable
+export default ConditionalMetricsTable

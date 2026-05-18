@@ -9,7 +9,7 @@ import SessionMetricsTable from '@views/sessions/SessionMetricsTable'
 import SessionResourcesTable from '@views/sessions/SessionResourcesTable'
 import RepsTable from '@views/sessions/RepsTable'
 import type { SessionType, SessionMetricType, SessionResourceType, RepType } from '@/types/app/assessmentTypes'
-import type { MetricType } from '@/types/app/metricTypes'
+import type { ConditionalMetricType } from '@/types/app/conditionTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
 
 const API_BASE = 'http://localhost:8080/api/v1'
@@ -33,14 +33,14 @@ const SessionDetailPage = async ({ params }: Props) => {
     allSessionMetrics,
     allSessionResources,
     allReps,
-    metrics,
+    conditionalMetrics,
     resourceTypes
   ] = await Promise.all([
     fetchJson<SessionType | null>(`${API_BASE}/sessions/${sessionId}`, null),
     fetchJson<SessionMetricType[]>(`${API_BASE}/sessionMetrics`, []),
     fetchJson<SessionResourceType[]>(`${API_BASE}/sessionResources`, []),
     fetchJson<RepType[]>(`${API_BASE}/reps`, []),
-    fetchJson<MetricType[]>(`${API_BASE}/metrics`, []),
+    fetchJson<ConditionalMetricType[]>(`${API_BASE}/conditionalMetrics`, []),
     fetchJson<DictionaryEntry[]>(`${API_BASE}/resourceTypeDictionaries`, [])
   ])
 
@@ -73,7 +73,7 @@ const SessionDetailPage = async ({ params }: Props) => {
       <SessionMetricsTable
         session1Id={numericSessionId}
         sessionMetrics={sessionMetrics}
-        metrics={metrics}
+        conditionalMetrics={conditionalMetrics}
       />
       <SessionResourcesTable
         session1Id={numericSessionId}

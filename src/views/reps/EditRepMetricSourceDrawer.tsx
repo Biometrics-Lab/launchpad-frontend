@@ -18,14 +18,14 @@ import PerfectScrollbar from 'react-perfect-scrollbar'
 import { useForm, Controller } from 'react-hook-form'
 
 import type { RepMetricSourceType, RepMetricType } from '@/types/app/assessmentTypes'
-import type { MetricType } from '@/types/app/metricTypes'
+import type { ConditionalMetricType } from '@/types/app/conditionTypes'
 import type { DataSourceType } from '@/types/app/dataSourceTypes'
 
 type Props = {
   open: boolean
   repMetricSource: RepMetricSourceType | null
   repMetrics: RepMetricType[]
-  metrics: MetricType[]
+  conditionalMetrics: ConditionalMetricType[]
   dataSources: DataSourceType[]
   handleClose: () => void
   onUpdated: (rms: RepMetricSourceType) => void
@@ -33,10 +33,10 @@ type Props = {
 
 type FormData = { repMetricId: number; dataSourceId: number; description: string }
 
-const EditRepMetricSourceDrawer = ({ open, repMetricSource, repMetrics, metrics, dataSources, handleClose, onUpdated }: Props) => {
+const EditRepMetricSourceDrawer = ({ open, repMetricSource, repMetrics, conditionalMetrics, dataSources, handleClose, onUpdated }: Props) => {
   const { control, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ defaultValues: { repMetricId: 0, dataSourceId: 0, description: '' } })
 
-  const metricMap = Object.fromEntries(metrics.map(m => [m.id, m.name]))
+  const conditionalMetricMap = Object.fromEntries(conditionalMetrics.map(cm => [cm.id, cm.name]))
 
   useEffect(() => {
     if (repMetricSource) reset({ repMetricId: repMetricSource.repMetricId, dataSourceId: repMetricSource.dataSourceId, description: repMetricSource.description ?? '' })
@@ -69,7 +69,7 @@ const EditRepMetricSourceDrawer = ({ open, repMetricSource, repMetrics, metrics,
               <Controller name='repMetricId' control={control} rules={{ validate: v => v !== 0 || 'Rep Metric is required' }} render={({ field }) => (
                 <Select {...field} label='Rep Metric'>
                   {repMetrics.map(rm => (
-                    <MenuItem key={rm.id} value={rm.id}>{metricMap[rm.metricId] ?? `Metric #${rm.metricId}`}</MenuItem>
+                    <MenuItem key={rm.id} value={rm.id}>{conditionalMetricMap[rm.conditionalMetricId] ?? `Metric #${rm.conditionalMetricId}`}</MenuItem>
                   ))}
                 </Select>
               )} />

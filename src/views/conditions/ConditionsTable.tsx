@@ -1,34 +1,35 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
-import CardHeader from '@mui/material/CardHeader'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
-import IconButton from '@mui/material/IconButton'
+import TextField from '@mui/material/TextField'
 import TablePagination from '@mui/material/TablePagination'
+import IconButton from '@mui/material/IconButton'
+import Chip from '@mui/material/Chip'
+import type { TextFieldProps } from '@mui/material/TextField'
 
 import classnames from 'classnames'
+import { rankItem } from '@tanstack/match-sorter-utils'
 import {
   createColumnHelper,
   flexRender,
   getCoreRowModel,
   useReactTable,
+  getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel
 } from '@tanstack/react-table'
 import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
-import { rankItem } from '@tanstack/match-sorter-utils'
-
-import type { TemplateMetricType } from '@/types/app/assessmentTemplateTypes'
-import type { ConditionalMetricType } from '@/types/app/conditionTypes'
-import type { DataSourceType } from '@/types/app/dataSourceTypes'
-import AddTemplateMetricDrawer from './AddTemplateMetricDrawer'
-import EditTemplateMetricDrawer from './EditTemplateMetricDrawer'
+import type { ConditionType } from '@/types/app/conditionTypes'
+import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
+import AddConditionDrawer from './AddConditionDrawer'
+import EditConditionDrawer from './EditConditionDrawer'
 import tableStyles from '@core/styles/table.module.css'
 
 declare module '@tanstack/table-core' {
@@ -38,68 +39,69 @@ declare module '@tanstack/table-core' {
 
 const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
   const itemRank = rankItem(row.getValue(columnId), value)
-
   addMeta({ itemRank })
-
   return itemRank.passed
 }
 
-const columnHelper = createColumnHelper<TemplateMetricType>()
-
-type Props = {
-  templateId: number
-  templateMetrics: TemplateMetricType[]
-  conditionalMetrics: ConditionalMetricType[]
-  dataSources: DataSourceType[]
+const DebouncedInput = ({
+  value: initialValue,
+  onChange,
+  debounce = 500,
+  ...props
+}: { value: string | number; onChange: (value: string | number) => void; debounce?: number } & Omit<TextFieldProps, 'onChange'>) => {
+  const [value, setValue] = useState(initialValue)
+  useEffect(() => setValue(initialValue), [initialValue])
+  useEffect(() => {
+    const timeout = setTimeout(() => onChange(value), debounce)
+    return () => clearTimeout(timeout)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
+  return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
 }
 
-const TemplateMetricsTable = ({ templateId, templateMetrics, conditionalMetrics, dataSources }: Props) => {
+const columnHelper = createColumnHelper<ConditionType>()
+
+type Props = {
+  conditionData: ConditionType[]
+  sports: DictionaryEntry[]
+}
+
+const ConditionsTable = ({ conditionData, sports }: Props) => {
   const [addOpen, setAddOpen] = useState(false)
-  const [editTarget, setEditTarget] = useState<TemplateMetricType | null>(null)
-  const [data, setData] = useState(templateMetrics)
-
-  const conditionalMetricMap = useMemo(
-    () => Object.fromEntries(conditionalMetrics.map(cm => [cm.id, cm.name])),
-    [conditionalMetrics]
-  )
-
-  const dataSourceMap = useMemo(
-    () => Object.fromEntries(dataSources.map(ds => [ds.id, ds.name])),
-    [dataSources]
-  )
+  const [editTarget, setEditTarget] = useState<ConditionType | null>(null)
+  const [data, setData] = useState(conditionData)
+  const [globalFilter, setGlobalFilter] = useState('')
 
   const handleDelete = async (id: number) => {
-    await fetch(`/api/template-metrics/${id}`, { method: 'DELETE' })
-    setData(prev => prev.filter(tm => tm.id !== id))
+    await fetch(`/api/conditions/${id}`, { method: 'DELETE' })
+    setData(prev => prev.filter(c => c.id !== id))
   }
 
-  const handleUpdate = (updated: TemplateMetricType) => {
-    setData(prev => prev.map(tm => (tm.id === updated.id ? updated : tm)))
+  const handleUpdate = (updated: ConditionType) => {
+    setData(prev => prev.map(c => (c.id === updated.id ? updated : c)))
   }
 
-  const columns = useMemo<ColumnDef<TemplateMetricType, any>[]>(
+  const columns = useMemo<ColumnDef<ConditionType, any>[]>(
     () => [
       columnHelper.accessor('id', {
         header: 'ID',
         cell: ({ row }) => <Typography color='text.primary'>#{row.original.id}</Typography>
       }),
-      columnHelper.accessor('conditionalMetricId', {
-        header: 'Conditional Metric',
+      columnHelper.accessor('name', {
+        header: 'Name',
         cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {conditionalMetricMap[row.original.conditionalMetricId] ?? `#${row.original.conditionalMetricId}`}
-          </Typography>
+          <Typography color='text.primary' className='font-medium'>{row.original.name}</Typography>
         )
       }),
-      {
-        id: 'dataSource',
-        header: 'Data Source',
-        cell: ({ row }) => {
-          const dsId = row.original.dataSourceId ?? row.original.sourceId
-
-          return <Typography color='text.secondary'>{dataSourceMap[dsId] ?? `#${dsId}`}</Typography>
-        }
-      },
+      columnHelper.accessor('sport', {
+        header: 'Sport',
+        cell: ({ row }) =>
+          row.original.sport ? (
+            <Chip label={row.original.sport} size='small' color='primary' variant='outlined' />
+          ) : (
+            <Typography color='text.secondary'>—</Typography>
+          )
+      }),
       {
         id: 'actions',
         header: 'Actions',
@@ -116,15 +118,19 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, conditionalMetrics,
       }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [conditionalMetricMap, dataSourceMap]
+    []
   )
 
   const table = useReactTable({
     data,
     columns,
     filterFns: { fuzzy: fuzzyFilter },
+    state: { globalFilter },
     initialState: { pagination: { pageSize: 10 } },
+    globalFilterFn: fuzzyFilter,
     getCoreRowModel: getCoreRowModel(),
+    onGlobalFilterChange: setGlobalFilter,
+    getFilteredRowModel: getFilteredRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel()
   })
@@ -132,19 +138,23 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, conditionalMetrics,
   return (
     <>
       <Card>
-        <CardHeader
-          title='Metrics'
-          action={
-            <Button
-              variant='contained'
-              size='small'
-              startIcon={<i className='ri-add-line' />}
-              onClick={() => setAddOpen(true)}
-            >
-              Add Metric
-            </Button>
-          }
-        />
+        <CardContent className='flex justify-between flex-wrap max-sm:flex-col sm:items-center gap-4'>
+          <DebouncedInput
+            value={globalFilter ?? ''}
+            onChange={value => setGlobalFilter(String(value))}
+            placeholder='Search'
+            className='max-sm:is-full'
+          />
+          <Button
+            variant='contained'
+            color='primary'
+            className='max-sm:is-full'
+            startIcon={<i className='ri-add-line' />}
+            onClick={() => setAddOpen(true)}
+          >
+            Add Condition
+          </Button>
+        </CardContent>
         <div className='overflow-x-auto'>
           <table className={tableStyles.table}>
             <thead>
@@ -154,10 +164,7 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, conditionalMetrics,
                     <th key={header.id}>
                       {header.isPlaceholder ? null : (
                         <div
-                          className={classnames({
-                            'flex items-center': header.column.getIsSorted(),
-                            'cursor-pointer select-none': header.column.getCanSort()
-                          })}
+                          className={classnames({ 'flex items-center': header.column.getIsSorted(), 'cursor-pointer select-none': header.column.getCanSort() })}
                           onClick={header.column.getToggleSortingHandler()}
                         >
                           {flexRender(header.column.columnDef.header, header.getContext())}
@@ -169,13 +176,9 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, conditionalMetrics,
                 </tr>
               ))}
             </thead>
-            {table.getRowModel().rows.length === 0 ? (
+            {table.getFilteredRowModel().rows.length === 0 ? (
               <tbody>
-                <tr>
-                  <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    No metrics assigned yet
-                  </td>
-                </tr>
+                <tr><td colSpan={table.getVisibleFlatColumns().length} className='text-center'>No data available</td></tr>
               </tbody>
             ) : (
               <tbody>
@@ -191,29 +194,26 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, conditionalMetrics,
           </table>
         </div>
         <TablePagination
-          rowsPerPageOptions={[10, 25]}
+          rowsPerPageOptions={[10, 25, 50]}
           component='div'
           className='border-bs'
-          count={data.length}
+          count={table.getFilteredRowModel().rows.length}
           rowsPerPage={table.getState().pagination.pageSize}
           page={table.getState().pagination.pageIndex}
           onPageChange={(_, page) => table.setPageIndex(page)}
           onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))}
         />
       </Card>
-      <AddTemplateMetricDrawer
+      <AddConditionDrawer
         open={addOpen}
-        templateId={templateId}
-        conditionalMetrics={conditionalMetrics}
-        dataSources={dataSources}
+        sports={sports}
         handleClose={() => setAddOpen(false)}
-        onCreated={tm => setData(prev => [...prev, tm])}
+        onCreated={c => setData(prev => [...prev, c])}
       />
-      <EditTemplateMetricDrawer
+      <EditConditionDrawer
         open={Boolean(editTarget)}
-        templateMetric={editTarget}
-        conditionalMetrics={conditionalMetrics}
-        dataSources={dataSources}
+        condition={editTarget}
+        sports={sports}
         handleClose={() => setEditTarget(null)}
         onUpdated={handleUpdate}
       />
@@ -221,4 +221,4 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, conditionalMetrics,
   )
 }
 
-export default TemplateMetricsTable
+export default ConditionsTable

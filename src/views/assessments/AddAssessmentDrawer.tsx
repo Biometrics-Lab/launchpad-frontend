@@ -18,12 +18,14 @@ import type { AssessmentType } from '@/types/app/assessmentTypes'
 import type { AssessmentTemplateType } from '@/types/app/assessmentTemplateTypes'
 import type { PlayerType } from '@/types/app/playersTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
+import type { ConditionType } from '@/types/app/conditionTypes'
 
 type Props = {
   open: boolean
   players: PlayerType[]
   sports: DictionaryEntry[]
   templates: AssessmentTemplateType[]
+  conditions: ConditionType[]
   handleClose: () => void
   onCreated: (a: AssessmentType) => void
 }
@@ -32,21 +34,22 @@ type FormData = {
   playerId: number
   sport: string
   templateId: number
+  conditionId: number
 }
 
-const AddAssessmentDrawer = ({ open, players, sports, templates, handleClose, onCreated }: Props) => {
+const AddAssessmentDrawer = ({ open, players, sports, templates, conditions, handleClose, onCreated }: Props) => {
   const {
     control,
     reset,
     handleSubmit,
     formState: { errors, isSubmitting }
-  } = useForm<FormData>({ defaultValues: { playerId: 0, sport: '', templateId: 0 } })
+  } = useForm<FormData>({ defaultValues: { playerId: 0, sport: '', templateId: 0, conditionId: 0 } })
 
   const onSubmit = async (data: FormData) => {
     const res = await fetch('/api/assessments', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
+      body: JSON.stringify({ ...data, conditionId: data.conditionId || null })
     })
     if (res.ok) {
       onCreated(await res.json())
@@ -123,6 +126,21 @@ const AddAssessmentDrawer = ({ open, players, sports, templates, handleClose, on
                 )}
               />
               {errors.templateId && <FormHelperText>{errors.templateId.message}</FormHelperText>}
+            </FormControl>
+            <FormControl fullWidth>
+              <InputLabel>Condition</InputLabel>
+              <Controller
+                name='conditionId'
+                control={control}
+                render={({ field }) => (
+                  <Select {...field} label='Condition'>
+                    <MenuItem value={0}>None</MenuItem>
+                    {conditions.map(c => (
+                      <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+                    ))}
+                  </Select>
+                )}
+              />
             </FormControl>
             <div className='flex items-center gap-4'>
               <Button variant='contained' type='submit' disabled={isSubmitting}>

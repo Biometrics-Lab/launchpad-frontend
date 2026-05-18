@@ -34,6 +34,7 @@ import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
 import type { AssessmentTemplateType } from '@/types/app/assessmentTemplateTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
+import type { ConditionType } from '@/types/app/conditionTypes'
 import AddTemplateDrawer from './AddTemplateDrawer'
 import EditTemplateDrawer from './EditTemplateDrawer'
 import tableStyles from '@core/styles/table.module.css'
@@ -75,9 +76,10 @@ const columnHelper = createColumnHelper<AssessmentTemplateType>()
 type Props = {
   templateData: AssessmentTemplateType[]
   sports: DictionaryEntry[]
+  conditions: ConditionType[]
 }
 
-const AssessmentTemplatesTable = ({ templateData, sports }: Props) => {
+const AssessmentTemplatesTable = ({ templateData, sports, conditions }: Props) => {
   const router = useRouter()
   const [addOpen, setAddOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<AssessmentTemplateType | null>(null)
@@ -255,6 +257,7 @@ const AssessmentTemplatesTable = ({ templateData, sports }: Props) => {
       <AddTemplateDrawer
         open={addOpen}
         sports={sports}
+        conditions={conditions}
         handleClose={() => setAddOpen(false)}
         onCreated={t => setData(prev => [...prev, t])}
       />
@@ -262,6 +265,7 @@ const AssessmentTemplatesTable = ({ templateData, sports }: Props) => {
         open={Boolean(editTarget)}
         template={editTarget}
         sports={sports}
+        conditions={conditions}
         handleClose={() => setEditTarget(null)}
         onUpdated={updated => setData(prev => prev.map(t => (t.id === updated.id ? updated : t)))}
       />

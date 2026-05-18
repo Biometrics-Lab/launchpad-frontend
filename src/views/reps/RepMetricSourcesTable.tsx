@@ -23,7 +23,7 @@ import type { RankingInfo } from '@tanstack/match-sorter-utils'
 import { rankItem } from '@tanstack/match-sorter-utils'
 
 import type { RepMetricSourceType, RepMetricType } from '@/types/app/assessmentTypes'
-import type { MetricType } from '@/types/app/metricTypes'
+import type { ConditionalMetricType } from '@/types/app/conditionTypes'
 import type { DataSourceType } from '@/types/app/dataSourceTypes'
 import AddRepMetricSourceDrawer from './AddRepMetricSourceDrawer'
 import EditRepMetricSourceDrawer from './EditRepMetricSourceDrawer'
@@ -46,20 +46,20 @@ type Props = {
   repId: number
   repMetrics: RepMetricType[]
   repMetricSources: RepMetricSourceType[]
-  metrics: MetricType[]
+  conditionalMetrics: ConditionalMetricType[]
   dataSources: DataSourceType[]
 }
 
-const RepMetricSourcesTable = ({ repId, repMetrics, repMetricSources, metrics, dataSources }: Props) => {
+const RepMetricSourcesTable = ({ repId, repMetrics, repMetricSources, conditionalMetrics, dataSources }: Props) => {
   const [addOpen, setAddOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<RepMetricSourceType | null>(null)
   const [data, setData] = useState(repMetricSources)
 
-  const metricMap = useMemo(() => Object.fromEntries(metrics.map(m => [m.id, m.name])), [metrics])
+  const conditionalMetricMap = useMemo(() => Object.fromEntries(conditionalMetrics.map(cm => [cm.id, cm.name])), [conditionalMetrics])
   const dataSourceMap = useMemo(() => Object.fromEntries(dataSources.map(ds => [ds.id, ds.name])), [dataSources])
   const repMetricMetricMap = useMemo(
-    () => Object.fromEntries(repMetrics.map(rm => [rm.id, metricMap[rm.metricId] ?? `Metric #${rm.metricId}`])),
-    [repMetrics, metricMap]
+    () => Object.fromEntries(repMetrics.map(rm => [rm.id, conditionalMetricMap[rm.conditionalMetricId] ?? `Metric #${rm.conditionalMetricId}`])),
+    [repMetrics, conditionalMetricMap]
   )
 
   const handleDelete = async (id: number) => {
@@ -140,8 +140,8 @@ const RepMetricSourcesTable = ({ repId, repMetrics, repMetricSources, metrics, d
         </div>
         <TablePagination rowsPerPageOptions={[10, 25]} component='div' className='border-bs' count={data.length} rowsPerPage={table.getState().pagination.pageSize} page={table.getState().pagination.pageIndex} onPageChange={(_, page) => table.setPageIndex(page)} onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))} />
       </Card>
-      <AddRepMetricSourceDrawer open={addOpen} repMetrics={repMetrics} metrics={metrics} dataSources={dataSources} handleClose={() => setAddOpen(false)} onCreated={rms => setData(prev => [...prev, rms])} />
-      <EditRepMetricSourceDrawer open={Boolean(editTarget)} repMetricSource={editTarget} repMetrics={repMetrics} metrics={metrics} dataSources={dataSources} handleClose={() => setEditTarget(null)} onUpdated={handleUpdate} />
+      <AddRepMetricSourceDrawer open={addOpen} repMetrics={repMetrics} conditionalMetrics={conditionalMetrics} dataSources={dataSources} handleClose={() => setAddOpen(false)} onCreated={rms => setData(prev => [...prev, rms])} />
+      <EditRepMetricSourceDrawer open={Boolean(editTarget)} repMetricSource={editTarget} repMetrics={repMetrics} conditionalMetrics={conditionalMetrics} dataSources={dataSources} handleClose={() => setEditTarget(null)} onUpdated={handleUpdate} />
     </>
   )
 }

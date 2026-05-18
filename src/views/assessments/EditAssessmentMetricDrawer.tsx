@@ -17,25 +17,25 @@ import PerfectScrollbar from 'react-perfect-scrollbar'
 import { useForm, Controller } from 'react-hook-form'
 
 import type { AssessmentMetricType } from '@/types/app/assessmentTypes'
-import type { MetricType } from '@/types/app/metricTypes'
+import type { ConditionalMetricType } from '@/types/app/conditionTypes'
 import type { DataSourceType } from '@/types/app/dataSourceTypes'
 
 type Props = {
   open: boolean
   assessmentMetric: AssessmentMetricType | null
-  metrics: MetricType[]
+  conditionalMetrics: ConditionalMetricType[]
   dataSources: DataSourceType[]
   handleClose: () => void
   onUpdated: (am: AssessmentMetricType) => void
 }
 
-type FormData = { metricId: number; sourceId: number }
+type FormData = { conditionalMetricId: number; sourceId: number }
 
-const EditAssessmentMetricDrawer = ({ open, assessmentMetric, metrics, dataSources, handleClose, onUpdated }: Props) => {
-  const { control, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ defaultValues: { metricId: 0, sourceId: 0 } })
+const EditAssessmentMetricDrawer = ({ open, assessmentMetric, conditionalMetrics, dataSources, handleClose, onUpdated }: Props) => {
+  const { control, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ defaultValues: { conditionalMetricId: 0, sourceId: 0 } })
 
   useEffect(() => {
-    if (assessmentMetric) reset({ metricId: assessmentMetric.metricId, sourceId: assessmentMetric.sourceId })
+    if (assessmentMetric) reset({ conditionalMetricId: assessmentMetric.conditionalMetricId, sourceId: assessmentMetric.sourceId })
   }, [assessmentMetric, reset])
 
   const onSubmit = async (data: FormData) => {
@@ -58,19 +58,19 @@ const EditAssessmentMetricDrawer = ({ open, assessmentMetric, metrics, dataSourc
       <PerfectScrollbar options={{ wheelPropagation: false, suppressScrollX: true }}>
         <div className='p-5'>
           <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-5'>
-            <FormControl fullWidth error={Boolean(errors.metricId)}>
-              <InputLabel>Metric</InputLabel>
+            <FormControl fullWidth error={Boolean(errors.conditionalMetricId)}>
+              <InputLabel>Conditional Metric</InputLabel>
               <Controller
-                name='metricId'
+                name='conditionalMetricId'
                 control={control}
-                rules={{ validate: v => v !== 0 || 'Metric is required' }}
+                rules={{ validate: v => v !== 0 || 'Conditional Metric is required' }}
                 render={({ field }) => (
-                  <Select {...field} label='Metric'>
-                    {metrics.map(m => <MenuItem key={m.id} value={m.id}>{m.name}</MenuItem>)}
+                  <Select {...field} label='Conditional Metric'>
+                    {conditionalMetrics.map(cm => <MenuItem key={cm.id} value={cm.id}>{cm.name}</MenuItem>)}
                   </Select>
                 )}
               />
-              {errors.metricId && <FormHelperText>{errors.metricId.message}</FormHelperText>}
+              {errors.conditionalMetricId && <FormHelperText>{errors.conditionalMetricId.message}</FormHelperText>}
             </FormControl>
             <FormControl fullWidth error={Boolean(errors.sourceId)}>
               <InputLabel>Data Source</InputLabel>

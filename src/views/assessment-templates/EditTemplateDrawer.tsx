@@ -19,11 +19,13 @@ import { useForm, Controller } from 'react-hook-form'
 
 import type { AssessmentTemplateType } from '@/types/app/assessmentTemplateTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
+import type { ConditionType } from '@/types/app/conditionTypes'
 
 type Props = {
   open: boolean
   template: AssessmentTemplateType | null
   sports: DictionaryEntry[]
+  conditions: ConditionType[]
   handleClose: () => void
   onUpdated: (template: AssessmentTemplateType) => void
 }
@@ -32,18 +34,19 @@ type FormData = {
   name: string
   sport: string
   description: string
+  conditionId: number
 }
 
-const EditTemplateDrawer = ({ open, template, sports, handleClose, onUpdated }: Props) => {
+const EditTemplateDrawer = ({ open, template, sports, conditions, handleClose, onUpdated }: Props) => {
   const {
     control,
     reset,
     handleSubmit,
     formState: { errors, isSubmitting }
-  } = useForm<FormData>({ defaultValues: { name: '', sport: '', description: '' } })
+  } = useForm<FormData>({ defaultValues: { name: '', sport: '', description: '', conditionId: 0 } })
 
   useEffect(() => {
-    if (template) reset({ name: template.name, sport: template.sport, description: template.description ?? '' })
+    if (template) reset({ name: template.name, sport: template.sport, description: template.description ?? '', conditionId: template.conditionId ?? 0 })
   }, [template, reset])
 
   const onSubmit = async (data: FormData) => {
@@ -52,7 +55,7 @@ const EditTemplateDrawer = ({ open, template, sports, handleClose, onUpdated }: 
     const res = await fetch('/api/assessment-templates', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: template.id, ...data })
+      body: JSON.stringify({ id: template.id, ...data, conditionId: data.conditionId || null })
     })
 
     if (res.ok) {
@@ -119,6 +122,21 @@ const EditTemplateDrawer = ({ open, template, sports, handleClose, onUpdated }: 
                 <TextField {...field} fullWidth label='Description' multiline rows={3} />
               )}
             />
+            <FormControl fullWidth>
+              <InputLabel>Condition</InputLabel>
+              <Controller
+                name='conditionId'
+                control={control}
+                render={({ field }) => (
+                  <Select {...field} label='Condition'>
+                    <MenuItem value={0}>None</MenuItem>
+                    {conditions.map(c => (
+                      <MenuItem key={c.id} value={c.id}>{c.name}</MenuItem>
+                    ))}
+                  </Select>
+                )}
+              />
+            </FormControl>
             <div className='flex items-center gap-4'>
               <Button variant='contained' type='submit' disabled={isSubmitting}>
                 {isSubmitting ? 'Saving…' : 'Save'}

@@ -9,7 +9,7 @@ import RepMetricsTable from '@views/reps/RepMetricsTable'
 import RepResourcesTable from '@views/reps/RepResourcesTable'
 import RepMetricSourcesTable from '@views/reps/RepMetricSourcesTable'
 import type { RepType, RepMetricType, RepResourceType, RepMetricSourceType } from '@/types/app/assessmentTypes'
-import type { MetricType } from '@/types/app/metricTypes'
+import type { ConditionalMetricType } from '@/types/app/conditionTypes'
 import type { DataSourceType } from '@/types/app/dataSourceTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
 
@@ -34,7 +34,7 @@ const RepDetailPage = async ({ params }: Props) => {
     allRepMetrics,
     allRepResources,
     allRepMetricSources,
-    metrics,
+    conditionalMetrics,
     dataSources,
     resourceTypes
   ] = await Promise.all([
@@ -42,7 +42,7 @@ const RepDetailPage = async ({ params }: Props) => {
     fetchJson<RepMetricType[]>(`${API_BASE}/repMetrics`, []),
     fetchJson<RepResourceType[]>(`${API_BASE}/repResources`, []),
     fetchJson<RepMetricSourceType[]>(`${API_BASE}/repMetricSources`, []),
-    fetchJson<MetricType[]>(`${API_BASE}/metrics`, []),
+    fetchJson<ConditionalMetricType[]>(`${API_BASE}/conditionalMetrics`, []),
     fetchJson<DataSourceType[]>(`${API_BASE}/dataSources`, []),
     fetchJson<DictionaryEntry[]>(`${API_BASE}/resourceTypeDictionaries`, [])
   ])
@@ -81,7 +81,7 @@ const RepDetailPage = async ({ params }: Props) => {
       <RepMetricsTable
         repId={numericRepId}
         repMetrics={repMetrics}
-        metrics={metrics}
+        conditionalMetrics={conditionalMetrics}
       />
       <RepResourcesTable
         repId={numericRepId}
@@ -92,7 +92,7 @@ const RepDetailPage = async ({ params }: Props) => {
         repId={numericRepId}
         repMetrics={repMetrics}
         repMetricSources={repMetricSources}
-        metrics={metrics}
+        conditionalMetrics={conditionalMetrics}
         dataSources={dataSources}
       />
     </div>
