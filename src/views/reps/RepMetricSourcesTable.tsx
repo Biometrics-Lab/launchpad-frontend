@@ -56,7 +56,7 @@ const RepMetricSourcesTable = ({ repId, repMetrics, repMetricSources, conditiona
   const [data, setData] = useState(repMetricSources)
 
   const conditionalMetricMap = useMemo(() => Object.fromEntries(conditionalMetrics.map(cm => [cm.id, cm.name])), [conditionalMetrics])
-  const dataSourceMap = useMemo(() => Object.fromEntries(dataSources.map(ds => [ds.id, ds.name])), [dataSources])
+  const dataSourceMap = useMemo(() => Object.fromEntries(dataSources.map(ds => [ds.id, ds.type])), [dataSources])
   const repMetricMetricMap = useMemo(
     () => Object.fromEntries(repMetrics.map(rm => [rm.id, conditionalMetricMap[rm.conditionalMetricId] ?? `Metric #${rm.conditionalMetricId}`])),
     [repMetrics, conditionalMetricMap]

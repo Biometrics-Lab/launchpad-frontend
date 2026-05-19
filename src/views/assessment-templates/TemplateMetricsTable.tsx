@@ -64,7 +64,7 @@ const TemplateMetricsTable = ({ templateId, templateMetrics, conditionalMetrics,
   )
 
   const dataSourceMap = useMemo(
-    () => Object.fromEntries(dataSources.map(ds => [ds.id, ds.name])),
+    () => Object.fromEntries(dataSources.map(ds => [ds.id, ds.type])),
     [dataSources]
   )
 

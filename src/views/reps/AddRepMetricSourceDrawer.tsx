@@ -73,7 +73,7 @@ const AddRepMetricSourceDrawer = ({ open, repMetrics, conditionalMetrics, dataSo
               <InputLabel>Data Source</InputLabel>
               <Controller name='dataSourceId' control={control} rules={{ validate: v => v !== 0 || 'Data Source is required' }} render={({ field }) => (
                 <Select {...field} label='Data Source'>
-                  {dataSources.map(ds => <MenuItem key={ds.id} value={ds.id}>{ds.name}</MenuItem>)}
+                  {dataSources.map(ds => <MenuItem key={ds.id} value={ds.id}>{ds.type}</MenuItem>)}
                 </Select>
               )} />
               {errors.dataSourceId && <FormHelperText>{errors.dataSourceId.message}</FormHelperText>}

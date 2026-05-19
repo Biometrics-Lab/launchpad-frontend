@@ -1,1 +1,1 @@
-export type DataSourceType = { id: number; name: string; type: string; description?: string }
+export type DataSourceType = { id: number; integrationId: number; metricId: number; name?: string; type: string; content?: string }

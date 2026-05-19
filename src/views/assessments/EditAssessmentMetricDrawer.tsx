@@ -80,7 +80,7 @@ const EditAssessmentMetricDrawer = ({ open, assessmentMetric, conditionalMetrics
                 rules={{ validate: v => v !== 0 || 'Data Source is required' }}
                 render={({ field }) => (
                   <Select {...field} label='Data Source'>
-                    {dataSources.map(ds => <MenuItem key={ds.id} value={ds.id}>{ds.name}</MenuItem>)}
+                    {dataSources.map(ds => <MenuItem key={ds.id} value={ds.id}>{ds.type}</MenuItem>)}
                   </Select>
                 )}
               />
