@@ -55,7 +55,7 @@ const AssessmentMetricsTable = ({ assessmentId, assessmentMetrics, conditionalMe
   const [data, setData] = useState(assessmentMetrics)
 
   const conditionalMetricMap = useMemo(() => Object.fromEntries(conditionalMetrics.map(cm => [cm.id, cm.name])), [conditionalMetrics])
-  const dataSourceMap = useMemo(() => Object.fromEntries(dataSources.map(ds => [ds.id, ds.name])), [dataSources])
+  const dataSourceMap = useMemo(() => Object.fromEntries(dataSources.map(ds => [ds.id, ds.type])), [dataSources])
 
   const handleDelete = async (id: number) => {
     await fetch(`/api/assessment-metrics/${id}`, { method: 'DELETE' })

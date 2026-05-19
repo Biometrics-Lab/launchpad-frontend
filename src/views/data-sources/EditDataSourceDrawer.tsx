@@ -19,31 +19,43 @@ import { useForm, Controller } from 'react-hook-form'
 
 import type { DataSourceType } from '@/types/app/dataSourceTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
+import type { IntegrationType } from '@/types/app/integrationTypes'
+import type { MetricType } from '@/types/app/metricTypes'
 
 type Props = {
   open: boolean
   dataSource: DataSourceType | null
+  integrations: IntegrationType[]
+  metrics: MetricType[]
   dataSourceTypes: DictionaryEntry[]
   handleClose: () => void
   onUpdated: (ds: DataSourceType) => void
 }
 
 type FormData = {
+  integrationId: number
+  metricId: number
   name: string
   type: string
-  description: string
 }
 
-const EditDataSourceDrawer = ({ open, dataSource, dataSourceTypes, handleClose, onUpdated }: Props) => {
+const EditDataSourceDrawer = ({ open, dataSource, integrations, metrics, dataSourceTypes, handleClose, onUpdated }: Props) => {
   const {
     control,
     reset,
     handleSubmit,
     formState: { errors, isSubmitting }
-  } = useForm<FormData>({ defaultValues: { name: '', type: '', description: '' } })
+  } = useForm<FormData>({ defaultValues: { integrationId: 0, metricId: 0, name: '', type: '' } })
 
   useEffect(() => {
-    if (dataSource) reset({ name: dataSource.name, type: dataSource.type, description: dataSource.description ?? '' })
+    if (dataSource) {
+      reset({
+        integrationId: dataSource.integrationId,
+        metricId: dataSource.metricId,
+        name: dataSource.name ?? '',
+        type: dataSource.type
+      })
+    }
   }, [dataSource, reset])
 
   const onSubmit = async (data: FormData) => {
@@ -52,7 +64,7 @@ const EditDataSourceDrawer = ({ open, dataSource, dataSourceTypes, handleClose, 
     const res = await fetch('/api/data-sources', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: dataSource.id, ...data })
+      body: JSON.stringify({ id: dataSource.id, content: dataSource.content, ...data })
     })
 
     if (res.ok) {
@@ -68,7 +80,7 @@ const EditDataSourceDrawer = ({ open, dataSource, dataSourceTypes, handleClose, 
       variant='temporary'
       onClose={handleClose}
       ModalProps={{ keepMounted: true }}
-      sx={{ '& .MuiDrawer-paper': { width: { xs: 300, sm: 400 } } }}
+      sx={{ '& .MuiDrawer-paper': { width: { xs: 300, sm: 480 } } }}
     >
       <div className='flex items-center justify-between pli-5 plb-4'>
         <Typography variant='h5'>Edit Data Source</Typography>
@@ -80,18 +92,43 @@ const EditDataSourceDrawer = ({ open, dataSource, dataSourceTypes, handleClose, 
       <PerfectScrollbar options={{ wheelPropagation: false, suppressScrollX: true }}>
         <div className='p-5'>
           <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-5'>
+            <FormControl fullWidth error={Boolean(errors.integrationId)}>
+              <InputLabel>Integration</InputLabel>
+              <Controller
+                name='integrationId'
+                control={control}
+                rules={{ validate: v => v !== 0 || 'Integration is required' }}
+                render={({ field }) => (
+                  <Select {...field} label='Integration'>
+                    {integrations.map(i => (
+                      <MenuItem key={i.id} value={i.id}>{i.name}</MenuItem>
+                    ))}
+                  </Select>
+                )}
+              />
+              {errors.integrationId && <FormHelperText>{errors.integrationId.message}</FormHelperText>}
+            </FormControl>
+            <FormControl fullWidth error={Boolean(errors.metricId)}>
+              <InputLabel>Metric</InputLabel>
+              <Controller
+                name='metricId'
+                control={control}
+                rules={{ validate: v => v !== 0 || 'Metric is required' }}
+                render={({ field }) => (
+                  <Select {...field} label='Metric'>
+                    {metrics.map(m => (
+                      <MenuItem key={m.id} value={m.id}>{m.name}</MenuItem>
+                    ))}
+                  </Select>
+                )}
+              />
+              {errors.metricId && <FormHelperText>{errors.metricId.message}</FormHelperText>}
+            </FormControl>
             <Controller
               name='name'
               control={control}
-              rules={{ required: 'Name is required' }}
               render={({ field }) => (
-                <TextField
-                  {...field}
-                  fullWidth
-                  label='Name'
-                  error={Boolean(errors.name)}
-                  helperText={errors.name?.message}
-                />
+                <TextField {...field} fullWidth label='Name' />
               )}
             />
             <FormControl fullWidth error={Boolean(errors.type)}>
@@ -103,21 +140,21 @@ const EditDataSourceDrawer = ({ open, dataSource, dataSourceTypes, handleClose, 
                 render={({ field }) => (
                   <Select {...field} label='Type'>
                     {dataSourceTypes.map(t => (
-                      <MenuItem key={t.name} value={t.name}>
-                        {t.name}
-                      </MenuItem>
+                      <MenuItem key={t.name} value={t.name}>{t.name}</MenuItem>
                     ))}
                   </Select>
                 )}
               />
               {errors.type && <FormHelperText>{errors.type.message}</FormHelperText>}
             </FormControl>
-            <Controller
-              name='description'
-              control={control}
-              render={({ field }) => (
-                <TextField {...field} fullWidth label='Description' multiline rows={3} />
-              )}
+            <TextField
+              fullWidth
+              label='Content'
+              multiline
+              rows={6}
+              value={dataSource?.content ?? ''}
+              InputProps={{ readOnly: true }}
+              inputProps={{ style: { fontFamily: 'monospace', fontSize: 12 } }}
             />
             <div className='flex items-center gap-4'>
               <Button variant='contained' type='submit' disabled={isSubmitting}>

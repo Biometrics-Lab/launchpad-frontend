@@ -106,7 +106,7 @@ const AddTemplateMetricDrawer = ({ open, templateId, conditionalMetrics, dataSou
                   <Select {...field} label='Data Source'>
                     {dataSources.map(ds => (
                       <MenuItem key={ds.id} value={ds.id}>
-                        {ds.name}
+                        {ds.type}
                       </MenuItem>
                     ))}
                   </Select>

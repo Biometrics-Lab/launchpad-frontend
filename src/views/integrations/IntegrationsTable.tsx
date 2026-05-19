@@ -2,12 +2,9 @@
 
 import { useState, useMemo, useEffect } from 'react'
 
-import { useRouter } from 'next/navigation'
-
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Button from '@mui/material/Button'
-import Chip from '@mui/material/Chip'
 import Typography from '@mui/material/Typography'
 import TextField from '@mui/material/TextField'
 import TablePagination from '@mui/material/TablePagination'
@@ -28,12 +25,9 @@ import {
 import type { ColumnDef, FilterFn } from '@tanstack/react-table'
 import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
-import type { DataSourceType } from '@/types/app/dataSourceTypes'
-import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
 import type { IntegrationType } from '@/types/app/integrationTypes'
-import type { MetricType } from '@/types/app/metricTypes'
-import AddDataSourceDrawer from './AddDataSourceDrawer'
-import EditDataSourceDrawer from './EditDataSourceDrawer'
+import AddIntegrationDrawer from './AddIntegrationDrawer'
+import EditIntegrationDrawer from './EditIntegrationDrawer'
 import tableStyles from '@core/styles/table.module.css'
 
 declare module '@tanstack/table-core' {
@@ -73,42 +67,26 @@ const DebouncedInput = ({
   return <TextField {...props} value={value} onChange={e => setValue(e.target.value)} size='small' />
 }
 
-const columnHelper = createColumnHelper<DataSourceType>()
+const columnHelper = createColumnHelper<IntegrationType>()
 
-type Props = {
-  dataSources: DataSourceType[]
-  integrations: IntegrationType[]
-  metrics: MetricType[]
-  dataSourceTypes: DictionaryEntry[]
-}
+type Props = { integrations: IntegrationType[] }
 
-const DataSourcesTable = ({ dataSources, integrations, metrics, dataSourceTypes }: Props) => {
-  const router = useRouter()
+const IntegrationsTable = ({ integrations }: Props) => {
   const [addOpen, setAddOpen] = useState(false)
-  const [editTarget, setEditTarget] = useState<DataSourceType | null>(null)
-  const [data, setData] = useState(dataSources)
+  const [editTarget, setEditTarget] = useState<IntegrationType | null>(null)
+  const [data, setData] = useState(integrations)
   const [globalFilter, setGlobalFilter] = useState('')
 
-  const integrationMap = useMemo(
-    () => Object.fromEntries(integrations.map(i => [i.id, i.name])),
-    [integrations]
-  )
-
-  const metricMap = useMemo(
-    () => Object.fromEntries(metrics.map(m => [m.id, m.name])),
-    [metrics]
-  )
-
-  const handleUpdate = (updated: DataSourceType) => {
-    setData(prev => prev.map(ds => (ds.id === updated.id ? updated : ds)))
-  }
-
   const handleDelete = async (id: number) => {
-    await fetch(`/api/data-sources/${id}`, { method: 'DELETE' })
-    setData(prev => prev.filter(ds => ds.id !== id))
+    await fetch(`/api/integrations/${id}`, { method: 'DELETE' })
+    setData(prev => prev.filter(i => i.id !== id))
   }
 
-  const columns = useMemo<ColumnDef<DataSourceType, any>[]>(
+  const handleUpdate = (updated: IntegrationType) => {
+    setData(prev => prev.map(i => (i.id === updated.id ? updated : i)))
+  }
+
+  const columns = useMemo<ColumnDef<IntegrationType, any>[]>(
     () => [
       columnHelper.accessor('id', {
         header: 'ID',
@@ -117,39 +95,8 @@ const DataSourcesTable = ({ dataSources, integrations, metrics, dataSourceTypes 
       columnHelper.accessor('name', {
         header: 'Name',
         cell: ({ row }) => (
-          <Typography
-            color='primary'
-            className='font-medium cursor-pointer hover:underline'
-            onClick={() => router.push(`/data-sources/${row.original.id}`)}
-          >
-            {row.original.name ?? '—'}
-          </Typography>
-        )
-      }),
-      columnHelper.accessor('integrationId', {
-        header: 'Integration',
-        cell: ({ row }) => (
-          <Typography color='text.primary'>{integrationMap[row.original.integrationId] ?? `#${row.original.integrationId}`}</Typography>
-        )
-      }),
-      columnHelper.accessor('metricId', {
-        header: 'Metric',
-        cell: ({ row }) => (
-          <Typography color='text.secondary'>{metricMap[row.original.metricId] ?? `#${row.original.metricId}`}</Typography>
-        )
-      }),
-      columnHelper.accessor('type', {
-        header: 'Type',
-        cell: ({ row }) => <Chip label={row.original.type} size='small' variant='outlined' />
-      }),
-      columnHelper.accessor('content', {
-        header: 'Content',
-        cell: ({ row }) => (
-          <Typography
-            color='text.secondary'
-            sx={{ fontFamily: 'monospace', fontSize: 12, maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-          >
-            {row.original.content ?? '—'}
+          <Typography color='text.primary' className='font-medium'>
+            {row.original.name}
           </Typography>
         )
       }),
@@ -158,9 +105,6 @@ const DataSourcesTable = ({ dataSources, integrations, metrics, dataSourceTypes 
         header: 'Actions',
         cell: ({ row }) => (
           <div className='flex items-center gap-1'>
-            <IconButton size='small' onClick={() => router.push(`/data-sources/${row.original.id}`)}>
-              <i className='ri-eye-line' />
-            </IconButton>
             <IconButton size='small' onClick={() => setEditTarget(row.original)}>
               <i className='ri-edit-line' />
             </IconButton>
@@ -172,7 +116,7 @@ const DataSourcesTable = ({ dataSources, integrations, metrics, dataSourceTypes 
       }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [integrationMap, metricMap]
+    []
   )
 
   const table = useReactTable({
@@ -206,7 +150,7 @@ const DataSourcesTable = ({ dataSources, integrations, metrics, dataSourceTypes 
             startIcon={<i className='ri-add-line' />}
             onClick={() => setAddOpen(true)}
           >
-            Add Data Source
+            Add Integration
           </Button>
         </CardContent>
         <div className='overflow-x-auto'>
@@ -240,7 +184,7 @@ const DataSourcesTable = ({ dataSources, integrations, metrics, dataSourceTypes 
               <tbody>
                 <tr>
                   <td colSpan={table.getVisibleFlatColumns().length} className='text-center'>
-                    No data sources found
+                    No integrations found
                   </td>
                 </tr>
               </tbody>
@@ -268,20 +212,14 @@ const DataSourcesTable = ({ dataSources, integrations, metrics, dataSourceTypes 
           onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))}
         />
       </Card>
-      <AddDataSourceDrawer
+      <AddIntegrationDrawer
         open={addOpen}
-        integrations={integrations}
-        metrics={metrics}
-        dataSourceTypes={dataSourceTypes}
         handleClose={() => setAddOpen(false)}
-        onCreated={ds => setData(prev => [...prev, ds])}
+        onCreated={i => setData(prev => [...prev, i])}
       />
-      <EditDataSourceDrawer
+      <EditIntegrationDrawer
         open={Boolean(editTarget)}
-        dataSource={editTarget}
-        integrations={integrations}
-        metrics={metrics}
-        dataSourceTypes={dataSourceTypes}
+        integration={editTarget}
         handleClose={() => setEditTarget(null)}
         onUpdated={handleUpdate}
       />
@@ -289,4 +227,4 @@ const DataSourcesTable = ({ dataSources, integrations, metrics, dataSourceTypes 
   )
 }
 
-export default DataSourcesTable
+export default IntegrationsTable
