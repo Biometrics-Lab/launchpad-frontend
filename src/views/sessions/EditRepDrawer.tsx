@@ -35,7 +35,7 @@ const EditRepDrawer = ({ open, rep, handleClose, onUpdated }: Props) => {
     const res = await fetch('/api/reps', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: rep.id, session1Id: rep.session1Id, startTime: data.startTime })
+      body: JSON.stringify({ id: rep.id, sessionId: rep.sessionId, startTime: data.startTime })
     })
     if (res.ok) { onUpdated(await res.json()); handleClose() }
   }

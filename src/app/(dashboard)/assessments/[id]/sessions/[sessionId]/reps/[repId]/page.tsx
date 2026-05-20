@@ -75,7 +75,7 @@ const RepDetailPage = async ({ params }: Props) => {
         <CardContent className='flex flex-col gap-2'>
           <Typography variant='h5'>Rep #{rep.id}</Typography>
           <Typography color='text.secondary'>Start Time: {rep.startTime}</Typography>
-          <Typography color='text.secondary'>Session: #{rep.session1Id}</Typography>
+          <Typography color='text.secondary'>Session: #{rep.sessionId}</Typography>
         </CardContent>
       </Card>
       <RepMetricsTable

@@ -41,7 +41,7 @@ const EditSessionMetricDrawer = ({ open, sessionMetric, conditionalMetrics, hand
     const res = await fetch('/api/session-metrics', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: sessionMetric.id, session1Id: sessionMetric.session1Id, conditionalMetricId: data.conditionalMetricId })
+      body: JSON.stringify({ id: sessionMetric.id, sessionId: sessionMetric.sessionId, conditionalMetricId: data.conditionalMetricId })
     })
     if (res.ok) { onUpdated(await res.json()); handleClose() }
   }

@@ -43,12 +43,12 @@ const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
 const columnHelper = createColumnHelper<SessionResourceType>()
 
 type Props = {
-  session1Id: number
+  sessionId: number
   sessionResources: SessionResourceType[]
   resourceTypes: DictionaryEntry[]
 }
 
-const SessionResourcesTable = ({ session1Id, sessionResources, resourceTypes }: Props) => {
+const SessionResourcesTable = ({ sessionId, sessionResources, resourceTypes }: Props) => {
   const [addOpen, setAddOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<SessionResourceType | null>(null)
   const [data, setData] = useState(sessionResources)
@@ -132,7 +132,7 @@ const SessionResourcesTable = ({ session1Id, sessionResources, resourceTypes }: 
         </div>
         <TablePagination rowsPerPageOptions={[10, 25]} component='div' className='border-bs' count={data.length} rowsPerPage={table.getState().pagination.pageSize} page={table.getState().pagination.pageIndex} onPageChange={(_, page) => table.setPageIndex(page)} onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))} />
       </Card>
-      <AddSessionResourceDrawer open={addOpen} session1Id={session1Id} resourceTypes={resourceTypes} handleClose={() => setAddOpen(false)} onCreated={r => setData(prev => [...prev, r])} />
+      <AddSessionResourceDrawer open={addOpen} sessionId={sessionId} resourceTypes={resourceTypes} handleClose={() => setAddOpen(false)} onCreated={r => setData(prev => [...prev, r])} />
       <EditSessionResourceDrawer open={Boolean(editTarget)} sessionResource={editTarget} resourceTypes={resourceTypes} handleClose={() => setEditTarget(null)} onUpdated={handleUpdate} />
     </>
   )

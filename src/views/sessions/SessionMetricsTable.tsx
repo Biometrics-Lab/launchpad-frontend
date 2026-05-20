@@ -42,12 +42,12 @@ const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
 const columnHelper = createColumnHelper<SessionMetricType>()
 
 type Props = {
-  session1Id: number
+  sessionId: number
   sessionMetrics: SessionMetricType[]
   conditionalMetrics: ConditionalMetricType[]
 }
 
-const SessionMetricsTable = ({ session1Id, sessionMetrics, conditionalMetrics }: Props) => {
+const SessionMetricsTable = ({ sessionId, sessionMetrics, conditionalMetrics }: Props) => {
   const [addOpen, setAddOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<SessionMetricType | null>(null)
   const [data, setData] = useState(sessionMetrics)
@@ -171,7 +171,7 @@ const SessionMetricsTable = ({ session1Id, sessionMetrics, conditionalMetrics }:
       </Card>
       <AddSessionMetricDrawer
         open={addOpen}
-        session1Id={session1Id}
+        sessionId={sessionId}
         conditionalMetrics={conditionalMetrics}
         handleClose={() => setAddOpen(false)}
         onCreated={sm => setData(prev => [...prev, sm])}

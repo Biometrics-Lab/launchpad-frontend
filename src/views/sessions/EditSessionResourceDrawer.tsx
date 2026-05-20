@@ -43,7 +43,7 @@ const EditSessionResourceDrawer = ({ open, sessionResource, resourceTypes, handl
     const res = await fetch('/api/session-resources', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: sessionResource.id, session1Id: sessionResource.session1Id, ...data, externalUrl: data.externalUrl || null })
+      body: JSON.stringify({ id: sessionResource.id, sessionId: sessionResource.sessionId, ...data, externalUrl: data.externalUrl || null })
     })
     if (res.ok) { onUpdated(await res.json()); handleClose() }
   }

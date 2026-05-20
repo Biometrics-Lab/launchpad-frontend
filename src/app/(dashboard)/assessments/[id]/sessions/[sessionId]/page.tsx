@@ -47,9 +47,9 @@ const SessionDetailPage = async ({ params }: Props) => {
   if (!session) notFound()
 
   const numericSessionId = Number(sessionId)
-  const sessionMetrics = allSessionMetrics.filter(sm => sm.session1Id === numericSessionId)
-  const sessionResources = allSessionResources.filter(sr => sr.session1Id === numericSessionId)
-  const reps = allReps.filter(r => r.session1Id === numericSessionId)
+  const sessionMetrics = allSessionMetrics.filter(sm => sm.sessionId === numericSessionId)
+  const sessionResources = allSessionResources.filter(sr => sr.sessionId === numericSessionId)
+  const reps = allReps.filter(r => r.sessionId === numericSessionId)
 
   return (
     <div className='flex flex-col gap-6'>
@@ -71,17 +71,16 @@ const SessionDetailPage = async ({ params }: Props) => {
         </CardContent>
       </Card>
       <SessionMetricsTable
-        session1Id={numericSessionId}
+        sessionId={numericSessionId}
         sessionMetrics={sessionMetrics}
         conditionalMetrics={conditionalMetrics}
       />
       <SessionResourcesTable
-        session1Id={numericSessionId}
+        sessionId={numericSessionId}
         sessionResources={sessionResources}
         resourceTypes={resourceTypes}
       />
       <RepsTable
-        session1Id={numericSessionId}
         reps={reps}
         assessmentId={Number(id)}
         sessionId={numericSessionId}
