@@ -10,6 +10,7 @@ import FormHelperText from '@mui/material/FormHelperText'
 import IconButton from '@mui/material/IconButton'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
+import Chip from '@mui/material/Chip'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
@@ -28,13 +29,13 @@ type Props = {
   onUpdated: (r: SessionResourceType) => void
 }
 
-type FormData = { type: string; url: string }
+type FormData = { type: string; url: string; externalUrl: string }
 
 const EditSessionResourceDrawer = ({ open, sessionResource, resourceTypes, handleClose, onUpdated }: Props) => {
-  const { control, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ defaultValues: { type: '', url: '' } })
+  const { control, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ defaultValues: { type: '', url: '', externalUrl: '' } })
 
   useEffect(() => {
-    if (sessionResource) reset({ type: sessionResource.type, url: sessionResource.url })
+    if (sessionResource) reset({ type: sessionResource.type, url: sessionResource.url, externalUrl: sessionResource.externalUrl ?? '' })
   }, [sessionResource, reset])
 
   const onSubmit = async (data: FormData) => {
@@ -42,7 +43,7 @@ const EditSessionResourceDrawer = ({ open, sessionResource, resourceTypes, handl
     const res = await fetch('/api/session-resources', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: sessionResource.id, session1Id: sessionResource.session1Id, ...data })
+      body: JSON.stringify({ id: sessionResource.id, session1Id: sessionResource.session1Id, ...data, externalUrl: data.externalUrl || null })
     })
     if (res.ok) { onUpdated(await res.json()); handleClose() }
   }
@@ -67,6 +68,18 @@ const EditSessionResourceDrawer = ({ open, sessionResource, resourceTypes, handl
             <Controller name='url' control={control} rules={{ required: 'URL is required' }} render={({ field }) => (
               <TextField {...field} fullWidth label='URL' error={Boolean(errors.url)} helperText={errors.url?.message} />
             )} />
+            <Controller name='externalUrl' control={control} render={({ field }) => (
+              <TextField {...field} fullWidth label='External URL' />
+            )} />
+            {sessionResource?.urlStatus && (() => {
+              const color = sessionResource.urlStatus === 'READY' ? 'success' : sessionResource.urlStatus === 'FAILED' ? 'error' : 'warning'
+              return (
+                <div className='flex items-center gap-2'>
+                  <Typography variant='body2' color='text.secondary'>Status:</Typography>
+                  <Chip label={sessionResource.urlStatus} color={color} size='small' variant='tonal' />
+                </div>
+              )
+            })()}
             <div className='flex items-center gap-4'>
               <Button variant='contained' type='submit' disabled={isSubmitting}>{isSubmitting ? 'Saving…' : 'Save'}</Button>
               <Button variant='outlined' color='error' onClick={handleClose}>Discard</Button>

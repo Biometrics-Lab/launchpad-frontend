@@ -4,6 +4,7 @@ export type AssessmentTemplateType = {
   sport: string
   description?: string
   conditionId?: number
+  allowExternalUrls: boolean
 }
 
 export type TemplateMetricType = {

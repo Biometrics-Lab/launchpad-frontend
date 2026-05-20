@@ -5,6 +5,7 @@ import { useState, useMemo } from 'react'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import Button from '@mui/material/Button'
+import Chip from '@mui/material/Chip'
 import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
 import TablePagination from '@mui/material/TablePagination'
@@ -65,7 +66,17 @@ const SessionResourcesTable = ({ session1Id, sessionResources, resourceTypes }: 
     () => [
       columnHelper.accessor('id', { header: 'ID', cell: ({ row }) => <Typography color='text.primary'>#{row.original.id}</Typography> }),
       columnHelper.accessor('type', { header: 'Type', cell: ({ row }) => <Typography color='text.primary'>{row.original.type}</Typography> }),
-      columnHelper.accessor('url', { header: 'URL', cell: ({ row }) => <Typography color='text.secondary' className='max-w-xs truncate'>{row.original.url}</Typography> }),
+      columnHelper.accessor('url', { header: 'URL', cell: ({ row }) => <Typography color='text.secondary' className='max-w-xs truncate'>{row.original.url ?? 'Unavailable'}</Typography> }),
+      columnHelper.accessor('externalUrl', { header: 'External URL', cell: ({ row }) => <Typography color='text.secondary' className='max-w-xs truncate'>{row.original.externalUrl ?? '—'}</Typography> }),
+      columnHelper.accessor('urlStatus', {
+        header: 'Status',
+        cell: ({ row }) => {
+          const status = row.original.urlStatus
+          if (!status) return null
+          const color = status === 'READY' ? 'success' : status === 'FAILED' ? 'error' : 'warning'
+          return <Chip label={status} color={color} size='small' variant='tonal' />
+        }
+      }),
       {
         id: 'actions',
         header: 'Actions',

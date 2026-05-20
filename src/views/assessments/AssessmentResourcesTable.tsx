@@ -5,6 +5,7 @@ import { useState, useMemo } from 'react'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import Button from '@mui/material/Button'
+import Chip from '@mui/material/Chip'
 import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
 import TablePagination from '@mui/material/TablePagination'
@@ -74,8 +75,23 @@ const AssessmentResourcesTable = ({ assessmentId, assessmentResources, resourceT
       columnHelper.accessor('url', {
         header: 'URL',
         cell: ({ row }) => (
-          <Typography color='text.secondary' className='max-w-xs truncate'>{row.original.url}</Typography>
+          <Typography color='text.secondary' className='max-w-xs truncate'>{row.original.url ?? 'Unavailable'}</Typography>
         )
+      }),
+      columnHelper.accessor('externalUrl', {
+        header: 'External URL',
+        cell: ({ row }) => (
+          <Typography color='text.secondary' className='max-w-xs truncate'>{row.original.externalUrl ?? '—'}</Typography>
+        )
+      }),
+      columnHelper.accessor('urlStatus', {
+        header: 'Status',
+        cell: ({ row }) => {
+          const status = row.original.urlStatus
+          if (!status) return null
+          const color = status === 'READY' ? 'success' : status === 'FAILED' ? 'error' : 'warning'
+          return <Chip label={status} color={color} size='small' variant='tonal' />
+        }
       }),
       {
         id: 'actions',
