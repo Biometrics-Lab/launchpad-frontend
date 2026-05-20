@@ -10,6 +10,7 @@ import FormHelperText from '@mui/material/FormHelperText'
 import IconButton from '@mui/material/IconButton'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
+import Chip from '@mui/material/Chip'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
@@ -28,13 +29,13 @@ type Props = {
   onUpdated: (r: RepResourceType) => void
 }
 
-type FormData = { type: string; url: string }
+type FormData = { type: string; url: string; externalUrl: string }
 
 const EditRepResourceDrawer = ({ open, repResource, resourceTypes, handleClose, onUpdated }: Props) => {
-  const { control, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ defaultValues: { type: '', url: '' } })
+  const { control, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ defaultValues: { type: '', url: '', externalUrl: '' } })
 
   useEffect(() => {
-    if (repResource) reset({ type: repResource.type, url: repResource.url })
+    if (repResource) reset({ type: repResource.type, url: repResource.url, externalUrl: repResource.externalUrl ?? '' })
   }, [repResource, reset])
 
   const onSubmit = async (data: FormData) => {
@@ -42,7 +43,7 @@ const EditRepResourceDrawer = ({ open, repResource, resourceTypes, handleClose, 
     const res = await fetch('/api/rep-resources', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: repResource.id, repId: repResource.repId, ...data })
+      body: JSON.stringify({ id: repResource.id, repId: repResource.repId, ...data, externalUrl: data.externalUrl || null })
     })
     if (res.ok) { onUpdated(await res.json()); handleClose() }
   }
@@ -67,6 +68,18 @@ const EditRepResourceDrawer = ({ open, repResource, resourceTypes, handleClose, 
             <Controller name='url' control={control} rules={{ required: 'URL is required' }} render={({ field }) => (
               <TextField {...field} fullWidth label='URL' error={Boolean(errors.url)} helperText={errors.url?.message} />
             )} />
+            <Controller name='externalUrl' control={control} render={({ field }) => (
+              <TextField {...field} fullWidth label='External URL' />
+            )} />
+            {repResource?.urlStatus && (() => {
+              const color = repResource.urlStatus === 'READY' ? 'success' : repResource.urlStatus === 'FAILED' ? 'error' : 'warning'
+              return (
+                <div className='flex items-center gap-2'>
+                  <Typography variant='body2' color='text.secondary'>Status:</Typography>
+                  <Chip label={repResource.urlStatus} color={color} size='small' variant='tonal' />
+                </div>
+              )
+            })()}
             <div className='flex items-center gap-4'>
               <Button variant='contained' type='submit' disabled={isSubmitting}>{isSubmitting ? 'Saving…' : 'Save'}</Button>
               <Button variant='outlined' color='error' onClick={handleClose}>Discard</Button>

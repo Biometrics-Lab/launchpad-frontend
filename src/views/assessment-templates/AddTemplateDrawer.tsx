@@ -9,6 +9,8 @@ import IconButton from '@mui/material/IconButton'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
+import Switch from '@mui/material/Switch'
+import FormControlLabel from '@mui/material/FormControlLabel'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 
@@ -32,6 +34,7 @@ type FormData = {
   sport: string
   description: string
   conditionId: number
+  allowExternalUrls: boolean
 }
 
 const AddTemplateDrawer = ({ open, sports, conditions, handleClose, onCreated }: Props) => {
@@ -40,7 +43,7 @@ const AddTemplateDrawer = ({ open, sports, conditions, handleClose, onCreated }:
     reset,
     handleSubmit,
     formState: { errors, isSubmitting }
-  } = useForm<FormData>({ defaultValues: { name: '', sport: '', description: '', conditionId: 0 } })
+  } = useForm<FormData>({ defaultValues: { name: '', sport: '', description: '', conditionId: 0, allowExternalUrls: false } })
 
   const onSubmit = async (data: FormData) => {
     const res = await fetch('/api/assessment-templates', {
@@ -134,6 +137,16 @@ const AddTemplateDrawer = ({ open, sports, conditions, handleClose, onCreated }:
                 )}
               />
             </FormControl>
+            <Controller
+              name='allowExternalUrls'
+              control={control}
+              render={({ field }) => (
+                <FormControlLabel
+                  control={<Switch checked={field.value} onChange={e => field.onChange(e.target.checked)} />}
+                  label='Allow external URLs'
+                />
+              )}
+            />
             <div className='flex items-center gap-4'>
               <Button variant='contained' type='submit' disabled={isSubmitting}>
                 {isSubmitting ? 'Saving…' : 'Add'}

@@ -10,6 +10,7 @@ import FormHelperText from '@mui/material/FormHelperText'
 import IconButton from '@mui/material/IconButton'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
+import Chip from '@mui/material/Chip'
 import Select from '@mui/material/Select'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
@@ -28,13 +29,13 @@ type Props = {
   onUpdated: (r: AssessmentResourceType) => void
 }
 
-type FormData = { type: string; url: string }
+type FormData = { type: string; url: string; externalUrl: string }
 
 const EditAssessmentResourceDrawer = ({ open, assessmentResource, resourceTypes, handleClose, onUpdated }: Props) => {
-  const { control, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ defaultValues: { type: '', url: '' } })
+  const { control, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ defaultValues: { type: '', url: '', externalUrl: '' } })
 
   useEffect(() => {
-    if (assessmentResource) reset({ type: assessmentResource.type, url: assessmentResource.url })
+    if (assessmentResource) reset({ type: assessmentResource.type, url: assessmentResource.url, externalUrl: assessmentResource.externalUrl ?? '' })
   }, [assessmentResource, reset])
 
   const onSubmit = async (data: FormData) => {
@@ -42,7 +43,7 @@ const EditAssessmentResourceDrawer = ({ open, assessmentResource, resourceTypes,
     const res = await fetch('/api/assessment-resources', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: assessmentResource.id, assessmentId: assessmentResource.assessmentId, ...data })
+      body: JSON.stringify({ id: assessmentResource.id, assessmentId: assessmentResource.assessmentId, ...data, externalUrl: data.externalUrl || null })
     })
     if (res.ok) { onUpdated(await res.json()); handleClose() }
   }
@@ -79,6 +80,18 @@ const EditAssessmentResourceDrawer = ({ open, assessmentResource, resourceTypes,
                 <TextField {...field} fullWidth label='URL' error={Boolean(errors.url)} helperText={errors.url?.message} />
               )}
             />
+            <Controller name='externalUrl' control={control} render={({ field }) => (
+              <TextField {...field} fullWidth label='External URL' />
+            )} />
+            {assessmentResource?.urlStatus && (() => {
+              const color = assessmentResource.urlStatus === 'READY' ? 'success' : assessmentResource.urlStatus === 'FAILED' ? 'error' : 'warning'
+              return (
+                <div className='flex items-center gap-2'>
+                  <Typography variant='body2' color='text.secondary'>Status:</Typography>
+                  <Chip label={assessmentResource.urlStatus} color={color} size='small' variant='tonal' />
+                </div>
+              )
+            })()}
             <div className='flex items-center gap-4'>
               <Button variant='contained' type='submit' disabled={isSubmitting}>{isSubmitting ? 'Saving…' : 'Save'}</Button>
               <Button variant='outlined' color='error' onClick={handleClose}>Discard</Button>

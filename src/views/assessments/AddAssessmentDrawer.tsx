@@ -9,6 +9,8 @@ import IconButton from '@mui/material/IconButton'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
+import Switch from '@mui/material/Switch'
+import FormControlLabel from '@mui/material/FormControlLabel'
 import Typography from '@mui/material/Typography'
 
 import PerfectScrollbar from 'react-perfect-scrollbar'
@@ -35,6 +37,7 @@ type FormData = {
   sport: string
   templateId: number
   conditionId: number
+  allowExternalUrls: boolean
 }
 
 const AddAssessmentDrawer = ({ open, players, sports, templates, conditions, handleClose, onCreated }: Props) => {
@@ -43,7 +46,7 @@ const AddAssessmentDrawer = ({ open, players, sports, templates, conditions, han
     reset,
     handleSubmit,
     formState: { errors, isSubmitting }
-  } = useForm<FormData>({ defaultValues: { playerId: 0, sport: '', templateId: 0, conditionId: 0 } })
+  } = useForm<FormData>({ defaultValues: { playerId: 0, sport: '', templateId: 0, conditionId: 0, allowExternalUrls: false } })
 
   const onSubmit = async (data: FormData) => {
     const res = await fetch('/api/assessments', {
@@ -142,6 +145,16 @@ const AddAssessmentDrawer = ({ open, players, sports, templates, conditions, han
                 )}
               />
             </FormControl>
+            <Controller
+              name='allowExternalUrls'
+              control={control}
+              render={({ field }) => (
+                <FormControlLabel
+                  control={<Switch checked={field.value} onChange={e => field.onChange(e.target.checked)} />}
+                  label='Allow external URLs'
+                />
+              )}
+            />
             <div className='flex items-center gap-4'>
               <Button variant='contained' type='submit' disabled={isSubmitting}>
                 {isSubmitting ? 'Saving…' : 'Add'}
