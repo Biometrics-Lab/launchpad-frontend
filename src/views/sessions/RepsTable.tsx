@@ -43,13 +43,12 @@ const fuzzyFilter: FilterFn<any> = (row, columnId, value, addMeta) => {
 const columnHelper = createColumnHelper<RepType>()
 
 type Props = {
-  session1Id: number
   reps: RepType[]
   assessmentId: number
   sessionId: number
 }
 
-const RepsTable = ({ session1Id, reps, assessmentId, sessionId }: Props) => {
+const RepsTable = ({ reps, assessmentId, sessionId }: Props) => {
   const router = useRouter()
   const [addOpen, setAddOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<RepType | null>(null)
@@ -128,7 +127,7 @@ const RepsTable = ({ session1Id, reps, assessmentId, sessionId }: Props) => {
         </div>
         <TablePagination rowsPerPageOptions={[10, 25]} component='div' className='border-bs' count={data.length} rowsPerPage={table.getState().pagination.pageSize} page={table.getState().pagination.pageIndex} onPageChange={(_, page) => table.setPageIndex(page)} onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))} />
       </Card>
-      <AddRepDrawer open={addOpen} session1Id={session1Id} handleClose={() => setAddOpen(false)} onCreated={r => setData(prev => [...prev, r])} />
+      <AddRepDrawer open={addOpen} sessionId={sessionId} handleClose={() => setAddOpen(false)} onCreated={r => setData(prev => [...prev, r])} />
       <EditRepDrawer open={Boolean(editTarget)} rep={editTarget} handleClose={() => setEditTarget(null)} onUpdated={handleUpdate} />
     </>
   )

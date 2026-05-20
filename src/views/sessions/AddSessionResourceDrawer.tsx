@@ -20,7 +20,7 @@ import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
 
 type Props = {
   open: boolean
-  session1Id: number
+  sessionId: number
   resourceTypes: DictionaryEntry[]
   handleClose: () => void
   onCreated: (r: SessionResourceType) => void
@@ -28,14 +28,14 @@ type Props = {
 
 type FormData = { type: string; url: string }
 
-const AddSessionResourceDrawer = ({ open, session1Id, resourceTypes, handleClose, onCreated }: Props) => {
+const AddSessionResourceDrawer = ({ open, sessionId, resourceTypes, handleClose, onCreated }: Props) => {
   const { control, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ defaultValues: { type: '', url: '' } })
 
   const onSubmit = async (data: FormData) => {
     const res = await fetch('/api/session-resources', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session1Id, ...data })
+      body: JSON.stringify({ sessionId, ...data })
     })
     if (res.ok) { onCreated(await res.json()); reset(); handleClose() }
   }

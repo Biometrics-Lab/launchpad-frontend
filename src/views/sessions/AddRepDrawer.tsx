@@ -14,21 +14,21 @@ import type { RepType } from '@/types/app/assessmentTypes'
 
 type Props = {
   open: boolean
-  session1Id: number
+  sessionId: number
   handleClose: () => void
   onCreated: (r: RepType) => void
 }
 
 type FormData = { startTime: string }
 
-const AddRepDrawer = ({ open, session1Id, handleClose, onCreated }: Props) => {
+const AddRepDrawer = ({ open, sessionId, handleClose, onCreated }: Props) => {
   const { control, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ defaultValues: { startTime: '' } })
 
   const onSubmit = async (data: FormData) => {
     const res = await fetch('/api/reps', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session1Id, startTime: data.startTime })
+      body: JSON.stringify({ sessionId, startTime: data.startTime })
     })
     if (res.ok) { onCreated(await res.json()); reset(); handleClose() }
   }

@@ -19,7 +19,7 @@ import type { ConditionalMetricType } from '@/types/app/conditionTypes'
 
 type Props = {
   open: boolean
-  session1Id: number
+  sessionId: number
   conditionalMetrics: ConditionalMetricType[]
   handleClose: () => void
   onCreated: (sm: SessionMetricType) => void
@@ -27,14 +27,14 @@ type Props = {
 
 type FormData = { conditionalMetricId: number }
 
-const AddSessionMetricDrawer = ({ open, session1Id, conditionalMetrics, handleClose, onCreated }: Props) => {
+const AddSessionMetricDrawer = ({ open, sessionId, conditionalMetrics, handleClose, onCreated }: Props) => {
   const { control, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ defaultValues: { conditionalMetricId: 0 } })
 
   const onSubmit = async (data: FormData) => {
     const res = await fetch('/api/session-metrics', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ session1Id, conditionalMetricId: data.conditionalMetricId })
+      body: JSON.stringify({ sessionId, conditionalMetricId: data.conditionalMetricId })
     })
     if (res.ok) { onCreated(await res.json()); reset(); handleClose() }
   }
