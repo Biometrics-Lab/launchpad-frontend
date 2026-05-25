@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Typography from '@mui/material/Typography'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
+import Chip from '@mui/material/Chip'
 
 import SessionMetricsTable from '@views/sessions/SessionMetricsTable'
 import SessionResourcesTable from '@views/sessions/SessionResourcesTable'
@@ -65,7 +66,17 @@ const SessionDetailPage = async ({ params }: Props) => {
       </div>
       <Card>
         <CardContent className='flex flex-col gap-2'>
-          <Typography variant='h5'>Session #{session.id}</Typography>
+          <div className='flex items-center gap-3'>
+            <Typography variant='h5'>Session #{session.id}</Typography>
+            {session.status && (
+              <Chip
+                label={session.status}
+                color={session.status === 'ACTIVE' ? 'success' : 'default'}
+                size='small'
+                variant='tonal'
+              />
+            )}
+          </div>
           <Typography color='text.secondary'>Start Time: {session.startTime}</Typography>
           <Typography color='text.secondary'>Assessment: #{session.assessmentId}</Typography>
         </CardContent>
