@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo, useEffect } from 'react'
+import Link from 'next/link'
 
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -103,9 +104,11 @@ const PlayersTable = ({ players, teams }: Props) => {
       columnHelper.accessor('name', {
         header: 'Name',
         cell: ({ row }) => (
-          <Typography color='text.primary' className='font-medium'>
-            {row.original.name}
-          </Typography>
+          <Link href={`/players/${row.original.id}`}>
+            <Typography color='primary' className='font-medium'>
+              {row.original.name}
+            </Typography>
+          </Link>
         )
       }),
       columnHelper.accessor('graduationYear', {

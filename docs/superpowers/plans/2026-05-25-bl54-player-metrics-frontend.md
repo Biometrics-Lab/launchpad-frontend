@@ -54,13 +54,6 @@ export type PlayerMetricsResponse = {
 }
 ```
 
-- [ ] **Commit**
-
-```bash
-git add src/types/app/playerMetricsTypes.ts
-git commit -m "[BL-54] Add PlayerMetricsResponse TypeScript types"
-```
-
 ---
 
 ## Task 2: API proxy route
@@ -84,13 +77,6 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 
   return NextResponse.json(await res.json(), { status: res.status })
 }
-```
-
-- [ ] **Commit**
-
-```bash
-git add src/app/api/players/[id]/metrics/route.ts
-git commit -m "[BL-54] Add API proxy route for player metrics"
 ```
 
 ---
@@ -197,13 +183,6 @@ const PlayerReportView = ({ player, teamName, metrics }: Props) => (
 export default PlayerReportView
 ```
 
-- [ ] **Commit**
-
-```bash
-git add src/views/players/PlayerReportView.tsx
-git commit -m "[BL-54] Add PlayerReportView with accordion layout"
-```
-
 ---
 
 ## Task 4: Player report page (Server Component)
@@ -259,13 +238,6 @@ const PlayerReportPage = async ({ params }: Props) => {
 export default PlayerReportPage
 ```
 
-- [ ] **Commit**
-
-```bash
-git add src/app/(dashboard)/players/[id]/page.tsx
-git commit -m "[BL-54] Add player report page at /players/[id]"
-```
-
 ---
 
 ## Task 5: Player name as link in PlayersTable
@@ -275,13 +247,13 @@ git commit -m "[BL-54] Add player report page at /players/[id]"
 
 The `name` column cell currently renders a plain `<Typography>`. Change it to a `<Link>` wrapping a `<Typography>` so clicking a player name navigates to their report page.
 
-- [ ] **Add the Link import at the top of the file** (after the existing React/MUI imports):
+- [ ] **Add the Link import** (after the existing React/MUI imports):
 
 ```tsx
 import Link from 'next/link'
 ```
 
-- [ ] **Update the `name` column cell** (find the existing `columnHelper.accessor('name', ...)` block and replace its `cell` function):
+- [ ] **Update the `name` column cell** (replace the existing `columnHelper.accessor('name', ...)` cell function):
 
 ```tsx
 columnHelper.accessor('name', {
@@ -296,13 +268,6 @@ columnHelper.accessor('name', {
 }),
 ```
 
-- [ ] **Commit**
-
-```bash
-git add src/views/people/PlayersTable.tsx
-git commit -m "[BL-54] Make player name a link to player report page"
-```
-
 ---
 
 ## Task 6: DashboardView component
@@ -310,7 +275,7 @@ git commit -m "[BL-54] Make player name a link to player report page"
 **Files:**
 - Create: `src/views/home/DashboardView.tsx`
 
-This is a pure Server Component (no `'use client'` — no browser interactions needed). It receives pre-fetched data and renders a grid of player cards.
+This is a pure Server Component (no `'use client'`). It receives pre-fetched data and renders a grid of player cards.
 
 Each card shows: player name (linked to report), team + grad year subtitle, then for each metric in `overall`: metric name label, then min/max/avg on one line with avg highlighted in primary color.
 
@@ -394,13 +359,6 @@ const DashboardView = ({ players, teams }: Props) => {
 export default DashboardView
 ```
 
-- [ ] **Commit**
-
-```bash
-git add src/views/home/DashboardView.tsx
-git commit -m "[BL-54] Add DashboardView with player metric cards"
-```
-
 ---
 
 ## Task 7: Dashboard home page (Server Component)
@@ -449,21 +407,6 @@ const DashboardPage = async () => {
 export default DashboardPage
 ```
 
-- [ ] **Lint**
-
-```bash
-npm run lint
-```
-
-Expected: no errors or warnings (fix any that appear before committing).
-
-- [ ] **Commit**
-
-```bash
-git add src/app/(dashboard)/home/page.tsx
-git commit -m "[BL-54] Implement dashboard home with player metric cards"
-```
-
 ---
 
 ## Task 8: Visual verification
@@ -475,26 +418,25 @@ npm run dev
 ```
 
 - [ ] **Check dashboard home** — open `http://localhost:3000/home`
-  - Should show a grid of player cards
-  - Each card: player name (linked), team + grad year subtitle, metrics with min/max/avg
+  - Grid of player cards, each with name (linked), team + grad year, metrics min/max/avg
   - Players with no metrics: "No metrics recorded yet"
   - No players at all: "No players found"
 
 - [ ] **Check player name link** — open `http://localhost:3000/players`
-  - Player names should appear in primary color and be clickable
-  - Clicking should navigate to `/players/{id}`
+  - Player names appear in primary color and are clickable
+  - Clicking navigates to `/players/{id}`
 
 - [ ] **Check player report page** — click a player name
   - Back link to `/players` at top
   - Player header card with name, team, grad year
-  - Overall section with metric cards (avg large, min/max small)
-  - Assessments accordion — each section expands/collapses
+  - Overall section: metric cards (avg large + primary, min/max small)
+  - Assessments accordion: each section expands/collapses
   - Null values display as `N/A`
 
 - [ ] **Check 404** — open `http://localhost:3000/players/99999`
-  - Should render the 404 page (Next.js default or custom)
+  - Should render the Next.js 404 page
 
-- [ ] **Final lint**
+- [ ] **Run lint**
 
 ```bash
 npm run lint
