@@ -9,6 +9,7 @@ import CardHeader from '@mui/material/CardHeader'
 import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
+import Chip from '@mui/material/Chip'
 import TablePagination from '@mui/material/TablePagination'
 
 import classnames from 'classnames'
@@ -71,6 +72,15 @@ const SessionsTable = ({ assessmentId, sessions }: Props) => {
       columnHelper.accessor('startTime', {
         header: 'Start Time',
         cell: ({ row }) => <Typography color='text.secondary'>{row.original.startTime}</Typography>
+      }),
+      columnHelper.accessor('status', {
+        header: 'Status',
+        cell: ({ row }) => {
+          const status = row.original.status
+          if (!status) return null
+          const color = status === 'ACTIVE' ? 'success' : 'default'
+          return <Chip label={status} color={color} size='small' variant='tonal' />
+        }
       }),
       {
         id: 'actions',
