@@ -36,3 +36,6 @@ tsconfig.tsbuildinfo
 # macOS Finder metadata
 .DS_Store
 /.env.local
+
+# Superpowers brainstorm sessions
+.superpowers/
