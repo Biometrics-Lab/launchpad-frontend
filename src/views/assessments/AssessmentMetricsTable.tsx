@@ -102,11 +102,6 @@ const AssessmentMetricsTable = ({ assessmentId, assessmentMetrics, conditionalMe
         cell: ({ row }) => <Typography color='text.secondary'>{row.original.avgValue ?? '—'}</Typography>
       },
       {
-        id: 'lastValue',
-        header: 'Last',
-        cell: ({ row }) => <Typography color='text.secondary'>{row.original.lastValue ?? '—'}</Typography>
-      },
-      {
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
