@@ -66,6 +66,10 @@ const RepsTable = ({ reps, assessmentId, sessionId }: Props) => {
   const columns = useMemo<ColumnDef<RepType, any>[]>(
     () => [
       columnHelper.accessor('id', { header: 'ID', cell: ({ row }) => <Typography color='text.primary'>#{row.original.id}</Typography> }),
+      columnHelper.accessor('repNumber', {
+        header: 'Rep #',
+        cell: ({ row }) => <Typography color='text.primary'>{row.original.repNumber ?? '—'}</Typography>
+      }),
       columnHelper.accessor('startTime', { header: 'Start Time', cell: ({ row }) => <Typography color='text.secondary'>{row.original.startTime}</Typography> }),
       {
         id: 'actions',

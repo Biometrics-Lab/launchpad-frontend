@@ -17,12 +17,10 @@ import { useForm, Controller } from 'react-hook-form'
 
 import type { DataSourceType } from '@/types/app/dataSourceTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
-import type { IntegrationType } from '@/types/app/integrationTypes'
 import type { MetricType } from '@/types/app/metricTypes'
 
 type Props = {
   open: boolean
-  integrations: IntegrationType[]
   metrics: MetricType[]
   dataSourceTypes: DictionaryEntry[]
   handleClose: () => void
@@ -30,20 +28,19 @@ type Props = {
 }
 
 type FormData = {
-  integrationId: number
   metricId: number
   name: string
   type: string
   content: string
 }
 
-const AddDataSourceDrawer = ({ open, integrations, metrics, dataSourceTypes, handleClose, onCreated }: Props) => {
+const AddDataSourceDrawer = ({ open, metrics, dataSourceTypes, handleClose, onCreated }: Props) => {
   const {
     control,
     reset,
     handleSubmit,
     formState: { errors, isSubmitting }
-  } = useForm<FormData>({ defaultValues: { integrationId: 0, metricId: 0, name: '', type: '', content: '' } })
+  } = useForm<FormData>({ defaultValues: { metricId: 0, name: '', type: '', content: '' } })
 
   const onSubmit = async (data: FormData) => {
     const res = await fetch('/api/data-sources', {
@@ -83,22 +80,6 @@ const AddDataSourceDrawer = ({ open, integrations, metrics, dataSourceTypes, han
       <PerfectScrollbar options={{ wheelPropagation: false, suppressScrollX: true }}>
         <div className='p-5'>
           <form onSubmit={handleSubmit(onSubmit)} className='flex flex-col gap-5'>
-            <FormControl fullWidth error={Boolean(errors.integrationId)}>
-              <InputLabel>Integration</InputLabel>
-              <Controller
-                name='integrationId'
-                control={control}
-                rules={{ validate: v => v !== 0 || 'Integration is required' }}
-                render={({ field }) => (
-                  <Select {...field} label='Integration'>
-                    {integrations.map(i => (
-                      <MenuItem key={i.id} value={i.id}>{i.name}</MenuItem>
-                    ))}
-                  </Select>
-                )}
-              />
-              {errors.integrationId && <FormHelperText>{errors.integrationId.message}</FormHelperText>}
-            </FormControl>
             <FormControl fullWidth error={Boolean(errors.metricId)}>
               <InputLabel>Metric</InputLabel>
               <Controller

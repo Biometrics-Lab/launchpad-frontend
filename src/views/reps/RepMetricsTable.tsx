@@ -76,6 +76,11 @@ const RepMetricsTable = ({ repId, repMetrics, conditionalMetrics }: Props) => {
         cell: ({ row }) => <Typography color='text.secondary'>{row.original.value != null ? String(row.original.value) : '—'}</Typography>
       },
       {
+        id: 'dataSourceId',
+        header: 'Data Source',
+        cell: ({ row }) => <Typography color='text.secondary'>{row.original.dataSourceId != null ? String(row.original.dataSourceId) : '—'}</Typography>
+      },
+      {
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (

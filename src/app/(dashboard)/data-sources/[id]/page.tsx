@@ -5,7 +5,6 @@ import Typography from '@mui/material/Typography'
 import DataSourceEditForm from '@views/data-sources/DataSourceEditForm'
 import type { DataSourceType } from '@/types/app/dataSourceTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
-import type { IntegrationType } from '@/types/app/integrationTypes'
 import type { MetricType } from '@/types/app/metricTypes'
 
 const API_BASE = 'http://localhost:8080/api/v1'
@@ -15,23 +14,13 @@ const HEADERS = { Authorization: AUTH }
 async function getDataSource(id: string): Promise<DataSourceType | null> {
   try {
     const res = await fetch(`${API_BASE}/dataSources/${id}`, { headers: HEADERS, cache: 'no-store' })
-
     return res.ok ? res.json() : null
   } catch { return null }
-}
-
-async function getIntegrations(): Promise<IntegrationType[]> {
-  try {
-    const res = await fetch(`${API_BASE}/integrations`, { headers: HEADERS, cache: 'no-store' })
-
-    return res.ok ? res.json() : []
-  } catch { return [] }
 }
 
 async function getMetrics(): Promise<MetricType[]> {
   try {
     const res = await fetch(`${API_BASE}/metrics`, { headers: HEADERS, cache: 'no-store' })
-
     return res.ok ? res.json() : []
   } catch { return [] }
 }
@@ -39,7 +28,6 @@ async function getMetrics(): Promise<MetricType[]> {
 async function getDataSourceTypes(): Promise<DictionaryEntry[]> {
   try {
     const res = await fetch(`${API_BASE}/dataSourceTypeDictionaries`, { headers: HEADERS, cache: 'no-store' })
-
     return res.ok ? res.json() : []
   } catch { return [] }
 }
@@ -48,9 +36,8 @@ type Props = { params: Promise<{ id: string }> }
 
 const EditDataSourcePage = async ({ params }: Props) => {
   const { id } = await params
-  const [dataSource, integrations, metrics, dataSourceTypes] = await Promise.all([
+  const [dataSource, metrics, dataSourceTypes] = await Promise.all([
     getDataSource(id),
-    getIntegrations(),
     getMetrics(),
     getDataSourceTypes()
   ])
@@ -65,7 +52,6 @@ const EditDataSourcePage = async ({ params }: Props) => {
       </Link>
       <DataSourceEditForm
         dataSource={dataSource}
-        integrations={integrations}
         metrics={metrics}
         dataSourceTypes={dataSourceTypes}
       />
