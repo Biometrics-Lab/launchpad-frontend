@@ -18,11 +18,9 @@ import { useForm, Controller } from 'react-hook-form'
 
 import type { DataSourceType } from '@/types/app/dataSourceTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
-import type { IntegrationType } from '@/types/app/integrationTypes'
 import type { MetricType } from '@/types/app/metricTypes'
 
 type FormData = {
-  integrationId: number
   metricId: number
   name: string
   type: string
@@ -31,12 +29,11 @@ type FormData = {
 
 type Props = {
   dataSource: DataSourceType
-  integrations: IntegrationType[]
   metrics: MetricType[]
   dataSourceTypes: DictionaryEntry[]
 }
 
-const DataSourceEditForm = ({ dataSource, integrations, metrics, dataSourceTypes }: Props) => {
+const DataSourceEditForm = ({ dataSource, metrics, dataSourceTypes }: Props) => {
   const router = useRouter()
 
   const {
@@ -45,7 +42,6 @@ const DataSourceEditForm = ({ dataSource, integrations, metrics, dataSourceTypes
     formState: { errors, isSubmitting }
   } = useForm<FormData>({
     defaultValues: {
-      integrationId: dataSource.integrationId,
       metricId: dataSource.metricId,
       name: dataSource.name ?? '',
       type: dataSource.type,
@@ -69,24 +65,6 @@ const DataSourceEditForm = ({ dataSource, integrations, metrics, dataSourceTypes
         <CardHeader title={`Edit Data Source #${dataSource.id}`} />
         <CardContent className='flex flex-col gap-6'>
           <Grid container spacing={4}>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth error={Boolean(errors.integrationId)}>
-                <InputLabel>Integration</InputLabel>
-                <Controller
-                  name='integrationId'
-                  control={control}
-                  rules={{ validate: v => v !== 0 || 'Integration is required' }}
-                  render={({ field }) => (
-                    <Select {...field} label='Integration'>
-                      {integrations.map(i => (
-                        <MenuItem key={i.id} value={i.id}>{i.name}</MenuItem>
-                      ))}
-                    </Select>
-                  )}
-                />
-                {errors.integrationId && <FormHelperText>{errors.integrationId.message}</FormHelperText>}
-              </FormControl>
-            </Grid>
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth error={Boolean(errors.metricId)}>
                 <InputLabel>Metric</InputLabel>

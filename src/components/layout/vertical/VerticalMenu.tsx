@@ -84,7 +84,6 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
             <MenuItem href='/assessment-templates'>Templates</MenuItem>
             <MenuItem href='/measurement'>Measurements</MenuItem>
             <MenuItem href='/metric'>Metrics</MenuItem>
-            <MenuItem href='/integrations'>Integrations</MenuItem>
             <MenuItem href='/data-sources'>Data Sources</MenuItem>
             <MenuItem href='/conditions'>Conditions</MenuItem>
             <MenuItem href='/conditional-metrics'>Conditional Metrics</MenuItem>

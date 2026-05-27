@@ -30,7 +30,6 @@ import type { RankingInfo } from '@tanstack/match-sorter-utils'
 
 import type { DataSourceType } from '@/types/app/dataSourceTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
-import type { IntegrationType } from '@/types/app/integrationTypes'
 import type { MetricType } from '@/types/app/metricTypes'
 import AddDataSourceDrawer from './AddDataSourceDrawer'
 import EditDataSourceDrawer from './EditDataSourceDrawer'
@@ -77,22 +76,16 @@ const columnHelper = createColumnHelper<DataSourceType>()
 
 type Props = {
   dataSources: DataSourceType[]
-  integrations: IntegrationType[]
   metrics: MetricType[]
   dataSourceTypes: DictionaryEntry[]
 }
 
-const DataSourcesTable = ({ dataSources, integrations, metrics, dataSourceTypes }: Props) => {
+const DataSourcesTable = ({ dataSources, metrics, dataSourceTypes }: Props) => {
   const router = useRouter()
   const [addOpen, setAddOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<DataSourceType | null>(null)
   const [data, setData] = useState(dataSources)
   const [globalFilter, setGlobalFilter] = useState('')
-
-  const integrationMap = useMemo(
-    () => Object.fromEntries(integrations.map(i => [i.id, i.name])),
-    [integrations]
-  )
 
   const metricMap = useMemo(
     () => Object.fromEntries(metrics.map(m => [m.id, m.name])),
@@ -124,12 +117,6 @@ const DataSourcesTable = ({ dataSources, integrations, metrics, dataSourceTypes 
           >
             {row.original.name ?? '—'}
           </Typography>
-        )
-      }),
-      columnHelper.accessor('integrationId', {
-        header: 'Integration',
-        cell: ({ row }) => (
-          <Typography color='text.primary'>{integrationMap[row.original.integrationId] ?? `#${row.original.integrationId}`}</Typography>
         )
       }),
       columnHelper.accessor('metricId', {
@@ -172,7 +159,7 @@ const DataSourcesTable = ({ dataSources, integrations, metrics, dataSourceTypes 
       }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [integrationMap, metricMap]
+    [metricMap]
   )
 
   const table = useReactTable({
@@ -270,7 +257,6 @@ const DataSourcesTable = ({ dataSources, integrations, metrics, dataSourceTypes 
       </Card>
       <AddDataSourceDrawer
         open={addOpen}
-        integrations={integrations}
         metrics={metrics}
         dataSourceTypes={dataSourceTypes}
         handleClose={() => setAddOpen(false)}
@@ -279,7 +265,6 @@ const DataSourcesTable = ({ dataSources, integrations, metrics, dataSourceTypes 
       <EditDataSourceDrawer
         open={Boolean(editTarget)}
         dataSource={editTarget}
-        integrations={integrations}
         metrics={metrics}
         dataSourceTypes={dataSourceTypes}
         handleClose={() => setEditTarget(null)}

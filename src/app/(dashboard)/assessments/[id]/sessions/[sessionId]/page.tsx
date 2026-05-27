@@ -9,6 +9,7 @@ import Chip from '@mui/material/Chip'
 import SessionMetricsTable from '@views/sessions/SessionMetricsTable'
 import SessionResourcesTable from '@views/sessions/SessionResourcesTable'
 import RepsTable from '@views/sessions/RepsTable'
+import SessionStartStopButtons from '@views/sessions/SessionStartStopButtons'
 import type { SessionType, SessionMetricType, SessionResourceType, RepType } from '@/types/app/assessmentTypes'
 import type { ConditionalMetricType } from '@/types/app/conditionTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
@@ -79,6 +80,7 @@ const SessionDetailPage = async ({ params }: Props) => {
           </div>
           <Typography color='text.secondary'>Start Time: {session.startTime}</Typography>
           <Typography color='text.secondary'>Assessment: #{session.assessmentId}</Typography>
+          <SessionStartStopButtons sessionId={numericSessionId} initialStatus={session.status} />
         </CardContent>
       </Card>
       <SessionMetricsTable
