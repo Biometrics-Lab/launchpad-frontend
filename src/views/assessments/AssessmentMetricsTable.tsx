@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 
+import Alert from '@mui/material/Alert'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import Button from '@mui/material/Button'
@@ -53,12 +54,18 @@ const AssessmentMetricsTable = ({ assessmentId, assessmentMetrics, conditionalMe
   const [addOpen, setAddOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<AssessmentMetricType | null>(null)
   const [data, setData] = useState(assessmentMetrics)
+  const [lockError, setLockError] = useState<string | null>(null)
 
   const conditionalMetricMap = useMemo(() => Object.fromEntries(conditionalMetrics.map(cm => [cm.id, cm.name])), [conditionalMetrics])
   const dataSourceMap = useMemo(() => Object.fromEntries(dataSources.map(ds => [ds.id, ds.type])), [dataSources])
 
   const handleDelete = async (id: number) => {
-    await fetch(`/api/assessment-metrics/${id}`, { method: 'DELETE' })
+    const res = await fetch(`/api/assessment-metrics/${id}`, { method: 'DELETE' })
+    if (res.status === 409) {
+      setLockError('Cannot modify — this assessment has sessions.')
+      return
+    }
+    setLockError(null)
     setData(prev => prev.filter(am => am.id !== id))
   }
 
@@ -102,18 +109,46 @@ const AssessmentMetricsTable = ({ assessmentId, assessmentMetrics, conditionalMe
         cell: ({ row }) => <Typography color='text.secondary'>{row.original.avgValue ?? '—'}</Typography>
       },
       {
+        id: 'sessionCount',
+        header: 'Sessions',
+        cell: ({ row }) => (
+          <Typography color='text.secondary'>{row.original.sessionCount ?? 0}</Typography>
+        )
+      },
+      {
+        id: 'repCount',
+        header: 'Reps',
+        cell: ({ row }) => (
+          <Typography color='text.secondary'>{row.original.repCount ?? 0}</Typography>
+        )
+      },
+      {
         id: 'actions',
         header: 'Actions',
-        cell: ({ row }) => (
-          <div className='flex items-center gap-1'>
-            <IconButton size='small' onClick={() => setEditTarget(row.original)}>
-              <i className='ri-edit-line' />
-            </IconButton>
-            <IconButton size='small' color='error' onClick={() => handleDelete(row.original.id)}>
-              <i className='ri-delete-bin-line' />
-            </IconButton>
-          </div>
-        )
+        cell: ({ row }) => {
+          const locked = (row.original.sessionCount ?? 0) > 0
+
+          if (locked) {
+            return (
+              <div className='flex items-center justify-center'>
+                <IconButton size='small' disabled title='Locked — session exists'>
+                  <i className='ri-lock-line text-sm' style={{ color: '#bbb' }} />
+                </IconButton>
+              </div>
+            )
+          }
+
+          return (
+            <div className='flex items-center gap-1'>
+              <IconButton size='small' onClick={() => setEditTarget(row.original)}>
+                <i className='ri-edit-line' />
+              </IconButton>
+              <IconButton size='small' color='error' onClick={() => handleDelete(row.original.id)}>
+                <i className='ri-delete-bin-line' />
+              </IconButton>
+            </div>
+          )
+        }
       }
     ],
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -141,6 +176,11 @@ const AssessmentMetricsTable = ({ assessmentId, assessmentMetrics, conditionalMe
             </Button>
           }
         />
+        {lockError && (
+          <div className='px-4 pb-2'>
+            <Alert severity='error' onClose={() => setLockError(null)}>{lockError}</Alert>
+          </div>
+        )}
         <div className='overflow-x-auto'>
           <table className={tableStyles.table}>
             <thead>

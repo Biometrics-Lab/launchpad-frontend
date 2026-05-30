@@ -15,14 +15,17 @@ import type { SessionType } from '@/types/app/assessmentTypes'
 type Props = {
   open: boolean
   assessmentId: number
+  metricCount: number
   handleClose: () => void
   onCreated: (s: SessionType) => void
 }
 
 type FormData = { startTime: string }
 
-const AddSessionDrawer = ({ open, assessmentId, handleClose, onCreated }: Props) => {
+const AddSessionDrawer = ({ open, assessmentId, metricCount, handleClose, onCreated }: Props) => {
   const { control, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ defaultValues: { startTime: '' } })
+
+  const hasNoMetrics = metricCount === 0
 
   const onSubmit = async (data: FormData) => {
     const res = await fetch('/api/sessions', {
@@ -62,9 +65,14 @@ const AddSessionDrawer = ({ open, assessmentId, handleClose, onCreated }: Props)
               )}
             />
             <div className='flex items-center gap-4'>
-              <Button variant='contained' type='submit' disabled={isSubmitting}>{isSubmitting ? 'Saving…' : 'Add'}</Button>
+              <Button variant='contained' type='submit' disabled={isSubmitting || hasNoMetrics}>{isSubmitting ? 'Saving…' : 'Start Session'}</Button>
               <Button variant='outlined' color='error' onClick={handleReset}>Discard</Button>
             </div>
+            {hasNoMetrics && (
+              <Typography variant='caption' color='error'>
+                Add at least one metric before starting a session.
+              </Typography>
+            )}
           </form>
         </div>
       </PerfectScrollbar>
