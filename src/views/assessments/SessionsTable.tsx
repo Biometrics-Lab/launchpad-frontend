@@ -46,9 +46,10 @@ const columnHelper = createColumnHelper<SessionType>()
 type Props = {
   assessmentId: number
   sessions: SessionType[]
+  metricCount: number
 }
 
-const SessionsTable = ({ assessmentId, sessions }: Props) => {
+const SessionsTable = ({ assessmentId, sessions, metricCount }: Props) => {
   const router = useRouter()
   const [addOpen, setAddOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<SessionType | null>(null)
@@ -177,6 +178,7 @@ const SessionsTable = ({ assessmentId, sessions }: Props) => {
       <AddSessionDrawer
         open={addOpen}
         assessmentId={assessmentId}
+        metricCount={metricCount}
         handleClose={() => setAddOpen(false)}
         onCreated={s => setData(prev => [...prev, s])}
       />

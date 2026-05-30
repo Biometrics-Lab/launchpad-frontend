@@ -235,7 +235,6 @@ const AssessmentsTable = ({ assessments, players, sports, templates, conditions 
       <AddAssessmentDrawer
         open={addOpen}
         players={players}
-        sports={sports}
         templates={templates}
         conditions={conditions}
         handleClose={() => setAddOpen(false)}

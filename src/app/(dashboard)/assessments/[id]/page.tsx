@@ -100,6 +100,7 @@ const AssessmentDetailPage = async ({ params }: Props) => {
       <SessionsTable
         assessmentId={numericId}
         sessions={sessions}
+        metricCount={assessmentMetrics.length}
       />
     </div>
   )
