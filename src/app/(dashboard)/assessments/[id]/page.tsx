@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 
 import Link from 'next/link'
+import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
 import Card from '@mui/material/Card'
@@ -86,6 +87,13 @@ const AssessmentDetailPage = async ({ params }: Props) => {
           </div>
         </CardContent>
       </Card>
+      <div className='flex justify-end'>
+        <Link href={`/report?playerId=${assessment.playerId}&assessmentId=${id}`}>
+          <Button variant='outlined' size='small' startIcon={<i className='ri-bar-chart-2-line' />}>
+            View Report
+          </Button>
+        </Link>
+      </div>
       <AssessmentMetricsTable
         assessmentId={numericId}
         assessmentMetrics={assessmentMetrics}
