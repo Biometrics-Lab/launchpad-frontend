@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 
 import Link from 'next/link'
+import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
@@ -10,7 +11,7 @@ import SessionMetricsTable from '@views/sessions/SessionMetricsTable'
 import SessionResourcesTable from '@views/sessions/SessionResourcesTable'
 import RepsTable from '@views/sessions/RepsTable'
 import SessionStartStopButtons from '@views/sessions/SessionStartStopButtons'
-import type { SessionType, SessionMetricType, SessionResourceType, RepType } from '@/types/app/assessmentTypes'
+import type { SessionType, SessionMetricType, SessionResourceType, RepType, AssessmentType } from '@/types/app/assessmentTypes'
 import type { ConditionalMetricType } from '@/types/app/conditionTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
 
@@ -32,6 +33,7 @@ const SessionDetailPage = async ({ params }: Props) => {
 
   const [
     session,
+    assessment,
     allSessionMetrics,
     allSessionResources,
     allReps,
@@ -39,6 +41,7 @@ const SessionDetailPage = async ({ params }: Props) => {
     resourceTypes
   ] = await Promise.all([
     fetchJson<SessionType | null>(`${API_BASE}/sessions/${sessionId}`, null),
+    fetchJson<AssessmentType | null>(`${API_BASE}/assessments/${id}`, null),
     fetchJson<SessionMetricType[]>(`${API_BASE}/sessionMetrics`, []),
     fetchJson<SessionResourceType[]>(`${API_BASE}/sessionResources`, []),
     fetchJson<RepType[]>(`${API_BASE}/reps`, []),
@@ -83,6 +86,15 @@ const SessionDetailPage = async ({ params }: Props) => {
           <SessionStartStopButtons sessionId={numericSessionId} initialStatus={session.status} />
         </CardContent>
       </Card>
+      {assessment && (
+        <div className='flex justify-end'>
+          <Link href={`/report?playerId=${assessment.playerId}&assessmentId=${session.assessmentId}&sessionId=${sessionId}&granularity=PER_SESSION`}>
+            <Button variant='outlined' size='small' startIcon={<i className='ri-bar-chart-2-line' />}>
+              View Report
+            </Button>
+          </Link>
+        </div>
+      )}
       <SessionMetricsTable
         sessionId={numericSessionId}
         sessionMetrics={sessionMetrics}

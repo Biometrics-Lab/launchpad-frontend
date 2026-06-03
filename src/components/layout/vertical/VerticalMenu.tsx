@@ -90,8 +90,8 @@ const VerticalMenu = ({ scrollMenu }: Props) => {
           </SubMenu>
         </MenuSection>
         <MenuSection label='Reports'>
-          <SubMenu label='Reports' icon={<i className='ri-line-chart-line' />}>
-            <MenuItem href='/reports'>Reports</MenuItem>
+          <SubMenu label='Reports' icon={<i className='ri-bar-chart-2-line' />}>
+            <MenuItem href='/report'>Player Assessment</MenuItem>
           </SubMenu>
         </MenuSection>
         <MenuSection label='Models'>

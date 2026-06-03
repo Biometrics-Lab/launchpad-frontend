@@ -1,5 +1,8 @@
 import { notFound } from 'next/navigation'
 
+import Link from 'next/link'
+import Button from '@mui/material/Button'
+
 import PlayerReportView from '@views/players/PlayerReportView'
 import type { PlayerType, TeamType } from '@/types/app/playersTypes'
 import type { PlayerMetricsResponse } from '@/types/app/playerMetricsTypes'
@@ -32,7 +35,18 @@ const PlayerReportPage = async ({ params }: Props) => {
 
   const teamName = player.teamId ? (teams.find(t => t.id === player.teamId)?.name ?? null) : null
 
-  return <PlayerReportView player={player} teamName={teamName} metrics={metrics} />
+  return (
+    <>
+      <div className='flex justify-end mb-2'>
+        <Link href={`/report?playerId=${id}`}>
+          <Button variant='outlined' size='small' startIcon={<i className='ri-bar-chart-2-line' />}>
+            View Report
+          </Button>
+        </Link>
+      </div>
+      <PlayerReportView player={player} teamName={teamName} metrics={metrics} />
+    </>
+  )
 }
 
 export default PlayerReportPage
