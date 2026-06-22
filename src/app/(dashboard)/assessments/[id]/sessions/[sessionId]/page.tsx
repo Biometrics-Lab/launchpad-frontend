@@ -81,9 +81,9 @@ const SessionDetailPage = async ({ params }: Props) => {
               />
             )}
           </div>
-          <Typography color='text.secondary'>Start Time: {session.startTime}</Typography>
+          <Typography color='text.secondary'>Start Time: {session.startTime?.slice(0, 19).replace('T', ' ')}</Typography>
           <Typography color='text.secondary'>Assessment: #{session.assessmentId}</Typography>
-          <SessionStartStopButtons sessionId={numericSessionId} initialStatus={session.status} />
+          <SessionStartStopButtons sessionId={numericSessionId} assessmentId={Number(id)} initialStatus={session.status} />
         </CardContent>
       </Card>
       {assessment && (
@@ -100,15 +100,15 @@ const SessionDetailPage = async ({ params }: Props) => {
         sessionMetrics={sessionMetrics}
         conditionalMetrics={conditionalMetrics}
       />
-      <SessionResourcesTable
-        sessionId={numericSessionId}
-        sessionResources={sessionResources}
-        resourceTypes={resourceTypes}
-      />
       <RepsTable
         reps={reps}
         assessmentId={Number(id)}
         sessionId={numericSessionId}
+      />
+      <SessionResourcesTable
+        sessionId={numericSessionId}
+        sessionResources={sessionResources}
+        resourceTypes={resourceTypes}
       />
     </div>
   )

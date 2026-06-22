@@ -25,6 +25,7 @@ import { rankItem } from '@tanstack/match-sorter-utils'
 
 import type { RepResourceType } from '@/types/app/assessmentTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
+import UrlPreviewDialog from '@components/UrlPreviewDialog'
 import AddRepResourceDrawer from './AddRepResourceDrawer'
 import EditRepResourceDrawer from './EditRepResourceDrawer'
 import tableStyles from '@core/styles/table.module.css'
@@ -51,6 +52,7 @@ type Props = {
 const RepResourcesTable = ({ repId, repResources, resourceTypes }: Props) => {
   const [addOpen, setAddOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<RepResourceType | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [data, setData] = useState(repResources)
 
   const handleDelete = async (id: number) => {
@@ -66,8 +68,28 @@ const RepResourcesTable = ({ repId, repResources, resourceTypes }: Props) => {
     () => [
       columnHelper.accessor('id', { header: 'ID', cell: ({ row }) => <Typography color='text.primary'>#{row.original.id}</Typography> }),
       columnHelper.accessor('type', { header: 'Type', cell: ({ row }) => <Typography color='text.primary'>{row.original.type}</Typography> }),
-      columnHelper.accessor('url', { header: 'URL', cell: ({ row }) => <Typography color='text.secondary' className='max-w-xs truncate'>{row.original.url ?? 'Unavailable'}</Typography> }),
-      columnHelper.accessor('externalUrl', { header: 'External URL', cell: ({ row }) => <Typography color='text.secondary' className='max-w-xs truncate'>{row.original.externalUrl ?? '—'}</Typography> }),
+      columnHelper.accessor('url', {
+        header: 'URL',
+        cell: ({ row }) => (
+          <div className='flex items-center gap-2'>
+            <Typography color='text.secondary' className='block w-96 truncate'>{row.original.url ?? 'Unavailable'}</Typography>
+            {row.original.url && (
+              <IconButton size='small' onClick={() => setPreviewUrl(row.original.url!)}><i className='ri-eye-line' /></IconButton>
+            )}
+          </div>
+        )
+      }),
+      columnHelper.accessor('externalUrl', {
+        header: 'External URL',
+        cell: ({ row }) => (
+          <div className='flex items-center gap-2'>
+            <Typography color='text.secondary' className='block w-96 truncate'>{row.original.externalUrl ?? '—'}</Typography>
+            {row.original.externalUrl && (
+              <IconButton size='small' onClick={() => setPreviewUrl(row.original.externalUrl!)}><i className='ri-eye-line' /></IconButton>
+            )}
+          </div>
+        )
+      }),
       columnHelper.accessor('urlStatus', {
         header: 'Status',
         cell: ({ row }) => {
@@ -82,7 +104,7 @@ const RepResourcesTable = ({ repId, repResources, resourceTypes }: Props) => {
         header: 'Actions',
         cell: ({ row }) => (
           <div className='flex items-center gap-1'>
-            <IconButton size='small' onClick={() => setEditTarget(row.original)}><i className='ri-edit-line' /></IconButton>
+            <IconButton size='small' onClick={() => setEditTarget(row.original)}><i className='ri-menu-unfold-line' /></IconButton>
             <IconButton size='small' color='error' onClick={() => handleDelete(row.original.id)}><i className='ri-delete-bin-line' /></IconButton>
           </div>
         )
@@ -132,6 +154,7 @@ const RepResourcesTable = ({ repId, repResources, resourceTypes }: Props) => {
       </Card>
       <AddRepResourceDrawer open={addOpen} repId={repId} resourceTypes={resourceTypes} handleClose={() => setAddOpen(false)} onCreated={r => setData(prev => [...prev, r])} />
       <EditRepResourceDrawer open={Boolean(editTarget)} repResource={editTarget} resourceTypes={resourceTypes} handleClose={() => setEditTarget(null)} onUpdated={handleUpdate} />
+      <UrlPreviewDialog url={previewUrl} onClose={() => setPreviewUrl(null)} />
     </>
   )
 }

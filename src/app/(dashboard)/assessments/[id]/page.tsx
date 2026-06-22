@@ -100,15 +100,15 @@ const AssessmentDetailPage = async ({ params }: Props) => {
         conditionalMetrics={conditionalMetrics}
         dataSources={dataSources}
       />
-      <AssessmentResourcesTable
-        assessmentId={numericId}
-        assessmentResources={assessmentResources}
-        resourceTypes={resourceTypes}
-      />
       <SessionsTable
         assessmentId={numericId}
         sessions={sessions}
         metricCount={assessmentMetrics.length}
+      />
+      <AssessmentResourcesTable
+        assessmentId={numericId}
+        assessmentResources={assessmentResources}
+        resourceTypes={resourceTypes}
       />
     </div>
   )

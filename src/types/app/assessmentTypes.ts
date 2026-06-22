@@ -13,3 +13,25 @@ export type UrlStatus = 'PENDING' | 'READY' | 'FAILED'
 export type AssessmentResourceType = { id: number; assessmentId: number; type: string; url: string; externalUrl?: string; urlStatus?: UrlStatus }
 export type SessionResourceType = { id: number; sessionId: number; type: string; url: string; externalUrl?: string; urlStatus?: UrlStatus }
 export type RepResourceType = { id: number; repId: number; type: string; url: string; externalUrl?: string; urlStatus?: UrlStatus }
+
+export type RepBroadcastDto = {
+  id: number
+  sessionId: number
+  repNumber?: number
+  startTime: string
+  metrics: RepMetricBroadcastData[]
+  resources: RepResourceBroadcastData[]
+}
+
+export type RepMetricBroadcastData = {
+  conditionalMetricId: number
+  name: string
+  value?: number | null
+}
+
+export type RepResourceBroadcastData = {
+  id: number
+  type: string
+  url: string
+  status: UrlStatus
+}

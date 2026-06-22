@@ -7,10 +7,12 @@ import { useRouter } from 'next/navigation'
 import Card from '@mui/material/Card'
 import CardHeader from '@mui/material/CardHeader'
 import Button from '@mui/material/Button'
+import CircularProgress from '@mui/material/CircularProgress'
 import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
 import Chip from '@mui/material/Chip'
 import TablePagination from '@mui/material/TablePagination'
+import Tooltip from '@mui/material/Tooltip'
 
 import classnames from 'classnames'
 import {
@@ -26,7 +28,6 @@ import type { RankingInfo } from '@tanstack/match-sorter-utils'
 import { rankItem } from '@tanstack/match-sorter-utils'
 
 import type { SessionType } from '@/types/app/assessmentTypes'
-import AddSessionDrawer from './AddSessionDrawer'
 import EditSessionDrawer from './EditSessionDrawer'
 import tableStyles from '@core/styles/table.module.css'
 
@@ -51,9 +52,26 @@ type Props = {
 
 const SessionsTable = ({ assessmentId, sessions, metricCount }: Props) => {
   const router = useRouter()
-  const [addOpen, setAddOpen] = useState(false)
+  const [adding, setAdding] = useState(false)
   const [editTarget, setEditTarget] = useState<SessionType | null>(null)
   const [data, setData] = useState(sessions)
+
+  const handleAddSession = async () => {
+    if (metricCount === 0 || adding) return
+    setAdding(true)
+    try {
+      const createRes = await fetch('/api/sessions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assessmentId, startTime: new Date().toISOString() })
+      })
+      if (!createRes.ok) return
+      const session: SessionType = await createRes.json()
+      router.push(`/assessments/${assessmentId}/sessions/${session.id}/active`)
+    } finally {
+      setAdding(false)
+    }
+  }
 
   const handleDelete = async (id: number) => {
     await fetch(`/api/sessions/${id}`, { method: 'DELETE' })
@@ -72,7 +90,7 @@ const SessionsTable = ({ assessmentId, sessions, metricCount }: Props) => {
       }),
       columnHelper.accessor('startTime', {
         header: 'Start Time',
-        cell: ({ row }) => <Typography color='text.secondary'>{row.original.startTime}</Typography>
+        cell: ({ row }) => <Typography color='text.secondary'>{row.original.startTime?.slice(0, 19).replace('T', ' ')}</Typography>
       }),
       columnHelper.accessor('status', {
         header: 'Status',
@@ -88,11 +106,20 @@ const SessionsTable = ({ assessmentId, sessions, metricCount }: Props) => {
         header: 'Actions',
         cell: ({ row }) => (
           <div className='flex items-center gap-1'>
+            <Tooltip title='Open live session'>
+              <IconButton
+                size='small'
+                color={row.original.status === 'ACTIVE' ? 'success' : row.original.status === 'COMPLETE' ? 'warning' : 'default'}
+                onClick={() => router.push(`/assessments/${assessmentId}/sessions/${row.original.id}/active`)}
+              >
+                <i className='ri-run-line' />
+              </IconButton>
+            </Tooltip>
             <IconButton size='small' onClick={() => router.push(`/assessments/${assessmentId}/sessions/${row.original.id}`)}>
-              <i className='ri-eye-line' />
+              <i className='ri-edit-line' />
             </IconButton>
             <IconButton size='small' onClick={() => setEditTarget(row.original)}>
-              <i className='ri-edit-line' />
+              <i className='ri-menu-unfold-line' />
             </IconButton>
             <IconButton size='small' color='error' onClick={() => handleDelete(row.original.id)}>
               <i className='ri-delete-bin-line' />
@@ -109,7 +136,7 @@ const SessionsTable = ({ assessmentId, sessions, metricCount }: Props) => {
     data,
     columns,
     filterFns: { fuzzy: fuzzyFilter },
-    initialState: { pagination: { pageSize: 10 } },
+    initialState: { pagination: { pageSize: 10 }, sorting: [{ id: 'id', desc: true }] },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getPaginationRowModel: getPaginationRowModel()
@@ -121,9 +148,19 @@ const SessionsTable = ({ assessmentId, sessions, metricCount }: Props) => {
         <CardHeader
           title='Sessions'
           action={
-            <Button variant='contained' size='small' startIcon={<i className='ri-add-line' />} onClick={() => setAddOpen(true)}>
-              Add Session
-            </Button>
+            <Tooltip title={metricCount === 0 ? 'Add at least one metric before starting a session' : ''}>
+              <span>
+                <Button
+                  variant='contained'
+                  size='small'
+                  startIcon={adding ? <CircularProgress size={14} color='inherit' /> : <i className='ri-add-line' />}
+                  disabled={metricCount === 0 || adding}
+                  onClick={handleAddSession}
+                >
+                  Add Session
+                </Button>
+              </span>
+            </Tooltip>
           }
         />
         <div className='overflow-x-auto'>
@@ -175,13 +212,6 @@ const SessionsTable = ({ assessmentId, sessions, metricCount }: Props) => {
           onRowsPerPageChange={e => table.setPageSize(Number(e.target.value))}
         />
       </Card>
-      <AddSessionDrawer
-        open={addOpen}
-        assessmentId={assessmentId}
-        metricCount={metricCount}
-        handleClose={() => setAddOpen(false)}
-        onCreated={s => setData(prev => [...prev, s])}
-      />
       <EditSessionDrawer
         open={Boolean(editTarget)}
         session={editTarget}
