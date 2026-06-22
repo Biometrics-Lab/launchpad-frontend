@@ -70,17 +70,17 @@ const RepsTable = ({ reps, assessmentId, sessionId }: Props) => {
         header: 'Rep #',
         cell: ({ row }) => <Typography color='text.primary'>{row.original.repNumber ?? '—'}</Typography>
       }),
-      columnHelper.accessor('startTime', { header: 'Start Time', cell: ({ row }) => <Typography color='text.secondary'>{row.original.startTime}</Typography> }),
+      columnHelper.accessor('startTime', { header: 'Start Time', cell: ({ row }) => <Typography color='text.secondary'>{row.original.startTime?.slice(0, 19).replace('T', ' ')}</Typography> }),
       {
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
           <div className='flex items-center gap-1'>
             <IconButton size='small' onClick={() => router.push(`/assessments/${assessmentId}/sessions/${sessionId}/reps/${row.original.id}`)}>
-              <i className='ri-eye-line' />
+              <i className='ri-edit-line' />
             </IconButton>
             <IconButton size='small' onClick={() => setEditTarget(row.original)}>
-              <i className='ri-edit-line' />
+              <i className='ri-menu-unfold-line' />
             </IconButton>
             <IconButton size='small' color='error' onClick={() => handleDelete(row.original.id)}>
               <i className='ri-delete-bin-line' />

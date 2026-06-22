@@ -25,6 +25,7 @@ import { rankItem } from '@tanstack/match-sorter-utils'
 
 import type { SessionResourceType } from '@/types/app/assessmentTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
+import UrlPreviewDialog from '@components/UrlPreviewDialog'
 import AddSessionResourceDrawer from './AddSessionResourceDrawer'
 import EditSessionResourceDrawer from './EditSessionResourceDrawer'
 import tableStyles from '@core/styles/table.module.css'
@@ -51,6 +52,7 @@ type Props = {
 const SessionResourcesTable = ({ sessionId, sessionResources, resourceTypes }: Props) => {
   const [addOpen, setAddOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<SessionResourceType | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [data, setData] = useState(sessionResources)
 
   const handleDelete = async (id: number) => {
@@ -66,8 +68,28 @@ const SessionResourcesTable = ({ sessionId, sessionResources, resourceTypes }: P
     () => [
       columnHelper.accessor('id', { header: 'ID', cell: ({ row }) => <Typography color='text.primary'>#{row.original.id}</Typography> }),
       columnHelper.accessor('type', { header: 'Type', cell: ({ row }) => <Typography color='text.primary'>{row.original.type}</Typography> }),
-      columnHelper.accessor('url', { header: 'URL', cell: ({ row }) => <Typography color='text.secondary' className='max-w-xs truncate'>{row.original.url ?? 'Unavailable'}</Typography> }),
-      columnHelper.accessor('externalUrl', { header: 'External URL', cell: ({ row }) => <Typography color='text.secondary' className='max-w-xs truncate'>{row.original.externalUrl ?? '—'}</Typography> }),
+      columnHelper.accessor('url', {
+        header: 'URL',
+        cell: ({ row }) => (
+          <div className='flex items-center gap-2'>
+            <Typography color='text.secondary' className='block w-96 truncate'>{row.original.url ?? 'Unavailable'}</Typography>
+            {row.original.url && (
+              <IconButton size='small' onClick={() => setPreviewUrl(row.original.url!)}><i className='ri-eye-line' /></IconButton>
+            )}
+          </div>
+        )
+      }),
+      columnHelper.accessor('externalUrl', {
+        header: 'External URL',
+        cell: ({ row }) => (
+          <div className='flex items-center gap-2'>
+            <Typography color='text.secondary' className='block w-96 truncate'>{row.original.externalUrl ?? '—'}</Typography>
+            {row.original.externalUrl && (
+              <IconButton size='small' onClick={() => setPreviewUrl(row.original.externalUrl!)}><i className='ri-eye-line' /></IconButton>
+            )}
+          </div>
+        )
+      }),
       columnHelper.accessor('urlStatus', {
         header: 'Status',
         cell: ({ row }) => {
@@ -82,7 +104,7 @@ const SessionResourcesTable = ({ sessionId, sessionResources, resourceTypes }: P
         header: 'Actions',
         cell: ({ row }) => (
           <div className='flex items-center gap-1'>
-            <IconButton size='small' onClick={() => setEditTarget(row.original)}><i className='ri-edit-line' /></IconButton>
+            <IconButton size='small' onClick={() => setEditTarget(row.original)}><i className='ri-menu-unfold-line' /></IconButton>
             <IconButton size='small' color='error' onClick={() => handleDelete(row.original.id)}><i className='ri-delete-bin-line' /></IconButton>
           </div>
         )
@@ -134,6 +156,7 @@ const SessionResourcesTable = ({ sessionId, sessionResources, resourceTypes }: P
       </Card>
       <AddSessionResourceDrawer open={addOpen} sessionId={sessionId} resourceTypes={resourceTypes} handleClose={() => setAddOpen(false)} onCreated={r => setData(prev => [...prev, r])} />
       <EditSessionResourceDrawer open={Boolean(editTarget)} sessionResource={editTarget} resourceTypes={resourceTypes} handleClose={() => setEditTarget(null)} onUpdated={handleUpdate} />
+      <UrlPreviewDialog url={previewUrl} onClose={() => setPreviewUrl(null)} />
     </>
   )
 }

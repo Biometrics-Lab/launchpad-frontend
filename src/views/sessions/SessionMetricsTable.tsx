@@ -77,16 +77,16 @@ const SessionMetricsTable = ({ sessionId, sessionMetrics, conditionalMetrics }: 
           </Typography>
         )
       }),
-      { id: 'minValue', header: 'Min', cell: ({ row }) => <Typography color='text.secondary'>{row.original.minValue ?? '—'}</Typography> },
-      { id: 'maxValue', header: 'Max', cell: ({ row }) => <Typography color='text.secondary'>{row.original.maxValue ?? '—'}</Typography> },
-      { id: 'avgValue', header: 'Avg', cell: ({ row }) => <Typography color='text.secondary'>{row.original.avgValue ?? '—'}</Typography> },
+      { id: 'minValue', header: 'Min', cell: ({ row }) => <Typography color='text.secondary'>{row.original.minValue != null ? parseFloat(row.original.minValue.toFixed(3)) : '—'}</Typography> },
+      { id: 'maxValue', header: 'Max', cell: ({ row }) => <Typography color='text.secondary'>{row.original.maxValue != null ? parseFloat(row.original.maxValue.toFixed(3)) : '—'}</Typography> },
+      { id: 'avgValue', header: 'Avg', cell: ({ row }) => <Typography color='text.secondary'>{row.original.avgValue != null ? parseFloat(row.original.avgValue.toFixed(3)) : '—'}</Typography> },
       {
         id: 'actions',
         header: 'Actions',
         cell: ({ row }) => (
           <div className='flex items-center gap-1'>
             <IconButton size='small' onClick={() => setEditTarget(row.original)}>
-              <i className='ri-edit-line' />
+              <i className='ri-menu-unfold-line' />
             </IconButton>
             <IconButton size='small' color='error' onClick={() => handleDelete(row.original.id)}>
               <i className='ri-delete-bin-line' />

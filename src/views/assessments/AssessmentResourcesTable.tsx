@@ -25,6 +25,7 @@ import { rankItem } from '@tanstack/match-sorter-utils'
 
 import type { AssessmentResourceType } from '@/types/app/assessmentTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
+import UrlPreviewDialog from '@components/UrlPreviewDialog'
 import AddAssessmentResourceDrawer from './AddAssessmentResourceDrawer'
 import EditAssessmentResourceDrawer from './EditAssessmentResourceDrawer'
 import tableStyles from '@core/styles/table.module.css'
@@ -51,6 +52,7 @@ type Props = {
 const AssessmentResourcesTable = ({ assessmentId, assessmentResources, resourceTypes }: Props) => {
   const [addOpen, setAddOpen] = useState(false)
   const [editTarget, setEditTarget] = useState<AssessmentResourceType | null>(null)
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const [data, setData] = useState(assessmentResources)
 
   const handleDelete = async (id: number) => {
@@ -75,13 +77,23 @@ const AssessmentResourcesTable = ({ assessmentId, assessmentResources, resourceT
       columnHelper.accessor('url', {
         header: 'URL',
         cell: ({ row }) => (
-          <Typography color='text.secondary' className='max-w-xs truncate'>{row.original.url ?? 'Unavailable'}</Typography>
+          <div className='flex items-center gap-2'>
+            <Typography color='text.secondary' className='block w-96 truncate'>{row.original.url ?? 'Unavailable'}</Typography>
+            {row.original.url && (
+              <IconButton size='small' onClick={() => setPreviewUrl(row.original.url!)}><i className='ri-eye-line' /></IconButton>
+            )}
+          </div>
         )
       }),
       columnHelper.accessor('externalUrl', {
         header: 'External URL',
         cell: ({ row }) => (
-          <Typography color='text.secondary' className='max-w-xs truncate'>{row.original.externalUrl ?? '—'}</Typography>
+          <div className='flex items-center gap-2'>
+            <Typography color='text.secondary' className='block w-96 truncate'>{row.original.externalUrl ?? '—'}</Typography>
+            {row.original.externalUrl && (
+              <IconButton size='small' onClick={() => setPreviewUrl(row.original.externalUrl!)}><i className='ri-eye-line' /></IconButton>
+            )}
+          </div>
         )
       }),
       columnHelper.accessor('urlStatus', {
@@ -99,7 +111,7 @@ const AssessmentResourcesTable = ({ assessmentId, assessmentResources, resourceT
         cell: ({ row }) => (
           <div className='flex items-center gap-1'>
             <IconButton size='small' onClick={() => setEditTarget(row.original)}>
-              <i className='ri-edit-line' />
+              <i className='ri-menu-unfold-line' />
             </IconButton>
             <IconButton size='small' color='error' onClick={() => handleDelete(row.original.id)}>
               <i className='ri-delete-bin-line' />
@@ -196,6 +208,7 @@ const AssessmentResourcesTable = ({ assessmentId, assessmentResources, resourceT
         handleClose={() => setEditTarget(null)}
         onUpdated={handleUpdate}
       />
+      <UrlPreviewDialog url={previewUrl} onClose={() => setPreviewUrl(null)} />
     </>
   )
 }

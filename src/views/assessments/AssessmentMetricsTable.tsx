@@ -96,17 +96,17 @@ const AssessmentMetricsTable = ({ assessmentId, assessmentMetrics, conditionalMe
       {
         id: 'minValue',
         header: 'Min',
-        cell: ({ row }) => <Typography color='text.secondary'>{row.original.minValue ?? '—'}</Typography>
+        cell: ({ row }) => <Typography color='text.secondary'>{row.original.minValue != null ? parseFloat(row.original.minValue.toFixed(3)) : '—'}</Typography>
       },
       {
         id: 'maxValue',
         header: 'Max',
-        cell: ({ row }) => <Typography color='text.secondary'>{row.original.maxValue ?? '—'}</Typography>
+        cell: ({ row }) => <Typography color='text.secondary'>{row.original.maxValue != null ? parseFloat(row.original.maxValue.toFixed(3)) : '—'}</Typography>
       },
       {
         id: 'avgValue',
         header: 'Avg',
-        cell: ({ row }) => <Typography color='text.secondary'>{row.original.avgValue ?? '—'}</Typography>
+        cell: ({ row }) => <Typography color='text.secondary'>{row.original.avgValue != null ? parseFloat(row.original.avgValue.toFixed(3)) : '—'}</Typography>
       },
       {
         id: 'sessionCount',
@@ -141,7 +141,7 @@ const AssessmentMetricsTable = ({ assessmentId, assessmentMetrics, conditionalMe
           return (
             <div className='flex items-center gap-1'>
               <IconButton size='small' onClick={() => setEditTarget(row.original)}>
-                <i className='ri-edit-line' />
+                <i className='ri-menu-unfold-line' />
               </IconButton>
               <IconButton size='small' color='error' onClick={() => handleDelete(row.original.id)}>
                 <i className='ri-delete-bin-line' />

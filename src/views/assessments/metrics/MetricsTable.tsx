@@ -158,7 +158,7 @@ const MetricsTable = ({ metricData, measurementData }: Props) => {
         cell: ({ row }) => (
           <div className='flex items-center gap-1'>
             <IconButton size='small' onClick={() => setEditTarget(row.original)}>
-              <i className='ri-edit-line' />
+              <i className='ri-menu-unfold-line' />
             </IconButton>
             <IconButton size='small' color='error' onClick={() => handleDelete(row.original.id)}>
               <i className='ri-delete-bin-line' />

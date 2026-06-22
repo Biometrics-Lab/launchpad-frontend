@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 import Button from '@mui/material/Button'
 import Drawer from '@mui/material/Drawer'
@@ -8,6 +8,7 @@ import Divider from '@mui/material/Divider'
 import FormControl from '@mui/material/FormControl'
 import FormHelperText from '@mui/material/FormHelperText'
 import IconButton from '@mui/material/IconButton'
+import InputAdornment from '@mui/material/InputAdornment'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import Chip from '@mui/material/Chip'
@@ -18,6 +19,7 @@ import Typography from '@mui/material/Typography'
 import PerfectScrollbar from 'react-perfect-scrollbar'
 import { useForm, Controller } from 'react-hook-form'
 
+import UrlPreviewDialog from '@components/UrlPreviewDialog'
 import type { RepResourceType } from '@/types/app/assessmentTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
 
@@ -33,6 +35,7 @@ type FormData = { type: string; url: string; externalUrl: string }
 
 const EditRepResourceDrawer = ({ open, repResource, resourceTypes, handleClose, onUpdated }: Props) => {
   const { control, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ defaultValues: { type: '', url: '', externalUrl: '' } })
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   useEffect(() => {
     if (repResource) reset({ type: repResource.type, url: repResource.url, externalUrl: repResource.externalUrl ?? '' })
@@ -66,10 +69,12 @@ const EditRepResourceDrawer = ({ open, repResource, resourceTypes, handleClose, 
               {errors.type && <FormHelperText>{errors.type.message}</FormHelperText>}
             </FormControl>
             <Controller name='url' control={control} rules={{ required: 'URL is required' }} render={({ field }) => (
-              <TextField {...field} fullWidth label='URL' error={Boolean(errors.url)} helperText={errors.url?.message} />
+              <TextField {...field} fullWidth label='URL' error={Boolean(errors.url)} helperText={errors.url?.message}
+                InputProps={{ endAdornment: field.value ? <InputAdornment position='end'><IconButton size='small' edge='end' onClick={() => setPreviewUrl(field.value)}><i className='ri-eye-line' /></IconButton></InputAdornment> : undefined }} />
             )} />
             <Controller name='externalUrl' control={control} render={({ field }) => (
-              <TextField {...field} fullWidth label='External URL' />
+              <TextField {...field} fullWidth label='External URL'
+                InputProps={{ endAdornment: field.value ? <InputAdornment position='end'><IconButton size='small' edge='end' onClick={() => setPreviewUrl(field.value)}><i className='ri-eye-line' /></IconButton></InputAdornment> : undefined }} />
             )} />
             {repResource?.urlStatus && (() => {
               const color = repResource.urlStatus === 'READY' ? 'success' : repResource.urlStatus === 'FAILED' ? 'error' : 'warning'
@@ -87,6 +92,7 @@ const EditRepResourceDrawer = ({ open, repResource, resourceTypes, handleClose, 
           </form>
         </div>
       </PerfectScrollbar>
+      <UrlPreviewDialog url={previewUrl} onClose={() => setPreviewUrl(null)} />
     </Drawer>
   )
 }

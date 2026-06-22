@@ -9,10 +9,11 @@ import Typography from '@mui/material/Typography'
 
 type Props = {
   sessionId: number
+  assessmentId: number
   initialStatus: string | null | undefined
 }
 
-const SessionStartStopButtons = ({ sessionId, initialStatus }: Props) => {
+const SessionStartStopButtons = ({ sessionId, assessmentId, initialStatus }: Props) => {
   const router = useRouter()
   const [status, setStatus] = useState(initialStatus)
   const [loading, setLoading] = useState(false)
@@ -24,9 +25,7 @@ const SessionStartStopButtons = ({ sessionId, initialStatus }: Props) => {
     try {
       const res = await fetch(`/api/sessions/${sessionId}/start`, { method: 'POST' })
       if (res.ok) {
-        const data = await res.json()
-        setStatus(data.status)
-        router.refresh()
+        router.push(`/assessments/${assessmentId}/sessions/${sessionId}/active`)
       } else {
         const data = await res.json().catch(() => ({}))
         setError(data.message ?? 'Failed to start session')
@@ -65,9 +64,19 @@ const SessionStartStopButtons = ({ sessionId, initialStatus }: Props) => {
           </Button>
         )}
         {status === 'ACTIVE' && (
-          <Button variant='contained' color='error' size='small' disabled={loading} onClick={handleStop}>
-            {loading ? 'Stopping…' : 'Stop Session'}
-          </Button>
+          <>
+            <Button
+              variant='contained'
+              color='primary'
+              size='small'
+              onClick={() => router.push(`/assessments/${assessmentId}/sessions/${sessionId}/active`)}
+            >
+              Go Live
+            </Button>
+            <Button variant='contained' color='error' size='small' disabled={loading} onClick={handleStop}>
+              {loading ? 'Stopping…' : 'Stop Session'}
+            </Button>
+          </>
         )}
       </div>
       {error && <Typography variant='caption' color='error'>{error}</Typography>}

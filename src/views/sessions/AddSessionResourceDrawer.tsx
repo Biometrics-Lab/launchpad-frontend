@@ -1,11 +1,14 @@
 'use client'
 
+import { useState } from 'react'
+
 import Button from '@mui/material/Button'
 import Drawer from '@mui/material/Drawer'
 import Divider from '@mui/material/Divider'
 import FormControl from '@mui/material/FormControl'
 import FormHelperText from '@mui/material/FormHelperText'
 import IconButton from '@mui/material/IconButton'
+import InputAdornment from '@mui/material/InputAdornment'
 import InputLabel from '@mui/material/InputLabel'
 import MenuItem from '@mui/material/MenuItem'
 import Select from '@mui/material/Select'
@@ -15,6 +18,7 @@ import Typography from '@mui/material/Typography'
 import PerfectScrollbar from 'react-perfect-scrollbar'
 import { useForm, Controller } from 'react-hook-form'
 
+import UrlPreviewDialog from '@components/UrlPreviewDialog'
 import type { SessionResourceType } from '@/types/app/assessmentTypes'
 import type { DictionaryEntry } from '@/types/app/dictionaryTypes'
 
@@ -30,6 +34,7 @@ type FormData = { type: string; url: string }
 
 const AddSessionResourceDrawer = ({ open, sessionId, resourceTypes, handleClose, onCreated }: Props) => {
   const { control, reset, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>({ defaultValues: { type: '', url: '' } })
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null)
 
   const onSubmit = async (data: FormData) => {
     const res = await fetch('/api/session-resources', {
@@ -60,7 +65,8 @@ const AddSessionResourceDrawer = ({ open, sessionId, resourceTypes, handleClose,
               {errors.type && <FormHelperText>{errors.type.message}</FormHelperText>}
             </FormControl>
             <Controller name='url' control={control} rules={{ required: 'URL is required' }} render={({ field }) => (
-              <TextField {...field} fullWidth label='URL' error={Boolean(errors.url)} helperText={errors.url?.message} />
+              <TextField {...field} fullWidth label='URL' error={Boolean(errors.url)} helperText={errors.url?.message}
+                InputProps={{ endAdornment: field.value ? <InputAdornment position='end'><IconButton size='small' edge='end' onClick={() => setPreviewUrl(field.value)}><i className='ri-eye-line' /></IconButton></InputAdornment> : undefined }} />
             )} />
             <div className='flex items-center gap-4'>
               <Button variant='contained' type='submit' disabled={isSubmitting}>{isSubmitting ? 'Saving…' : 'Add'}</Button>
@@ -69,6 +75,7 @@ const AddSessionResourceDrawer = ({ open, sessionId, resourceTypes, handleClose,
           </form>
         </div>
       </PerfectScrollbar>
+      <UrlPreviewDialog url={previewUrl} onClose={() => setPreviewUrl(null)} />
     </Drawer>
   )
 }
