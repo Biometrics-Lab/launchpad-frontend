@@ -1,5 +1,5 @@
 import type { PlayerType, TeamType } from '@/types/app/playersTypes'
-import type { AssessmentType, SessionType } from '@/types/app/assessmentTypes'
+import type { AssessmentType, AssessmentTemplateType, SessionType } from '@/types/app/assessmentTypes'
 import type { PlayerMetricsResponse } from '@/types/app/playerMetricsTypes'
 import type { DashboardKpi, PlayerAssessmentSummary, RecentPlayerEntry } from '@/types/app/dashboardTypes'
 
@@ -22,7 +22,8 @@ export function deriveRecentPlayers(
   teams: TeamType[],
   assessments: AssessmentType[],
   sessions: SessionType[],
-  metricsMap: Map<number, PlayerMetricsResponse>
+  metricsMap: Map<number, PlayerMetricsResponse>,
+  templateMap: Map<number, string> = new Map()
 ): RecentPlayerEntry[] {
   const teamMap = new Map(teams.map(t => [t.id, t.name]))
 
@@ -75,6 +76,7 @@ export function deriveRecentPlayers(
           return {
             assessmentId: a.id,
             sport: a.sport,
+            templateName: templateMap.get(a.templateId) ?? null,
             lastSessionDate: latestComplete?.startTime ?? null,
             isActiveNow: aSessions.some(s => s.status === 'ACTIVE'),
             metrics: playerMetrics?.assessments.find(m => m.assessmentId === a.id)?.metrics ?? [],

@@ -1,7 +1,7 @@
 import DashboardView from '@views/home/DashboardView'
 import { deriveKpi, deriveRecentPlayers } from '@/lib/dashboard'
 import type { PlayerType, TeamType } from '@/types/app/playersTypes'
-import type { AssessmentType, SessionType } from '@/types/app/assessmentTypes'
+import type { AssessmentType, AssessmentTemplateType, SessionType } from '@/types/app/assessmentTypes'
 import type { PlayerMetricsResponse } from '@/types/app/playerMetricsTypes'
 
 const API_BASE = 'http://localhost:8080/api/v1'
@@ -18,13 +18,16 @@ async function fetchJson<T>(url: string, fallback: T): Promise<T> {
 }
 
 const DashboardPage = async () => {
-  // Batch 1: base data (4 parallel requests)
-  const [players, teams, assessments, sessions] = await Promise.all([
+  // Batch 1: base data (5 parallel requests)
+  const [players, teams, assessments, sessions, templates] = await Promise.all([
     fetchJson<PlayerType[]>(`${API_BASE}/players`, []),
     fetchJson<TeamType[]>(`${API_BASE}/teams`, []),
     fetchJson<AssessmentType[]>(`${API_BASE}/assessments`, []),
     fetchJson<SessionType[]>(`${API_BASE}/sessions`, []),
+    fetchJson<AssessmentTemplateType[]>(`${API_BASE}/assessmentTemplates`, []),
   ])
+
+  const templateMap = new Map(templates.map(t => [t.id, t.name]))
 
   const kpi = deriveKpi(players, teams, assessments, sessions)
 
@@ -59,7 +62,7 @@ const DashboardPage = async () => {
     top10PlayerIds.map((id, i) => [id, metricsResults[i]])
   )
 
-  const entries = deriveRecentPlayers(players, teams, assessments, sessions, metricsMap)
+  const entries = deriveRecentPlayers(players, teams, assessments, sessions, metricsMap, templateMap)
 
   return <DashboardView kpi={kpi} entries={entries} />
 }

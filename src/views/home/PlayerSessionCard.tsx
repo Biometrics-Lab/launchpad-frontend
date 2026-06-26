@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import Typography from '@mui/material/Typography'
@@ -13,21 +14,31 @@ import { getAvatarColor, getInitials, getSportEmoji, formatRelativeDate } from '
 
 const AppReactApexCharts = dynamic(() => import('@/libs/styles/AppReactApexCharts'), { ssr: false })
 
+// TODO: remove once backend excludes Power from metrics by default
+const HIDDEN_METRICS = new Set(['Power'])
+
 type Props = { entry: RecentPlayerEntry }
 
 const PlayerSessionCard = ({ entry }: Props) => {
   const { player, teamName, hasActiveSession, assessments, defaultOpenAssessmentId } = entry
   const [openId, setOpenId] = useState<number>(defaultOpenAssessmentId)
+  const router = useRouter()
+
+  const goToReport = (assessmentId: number) =>
+    router.push(`/report?playerId=${player.id}&assessmentId=${assessmentId}&configName=Radar+Chart`)
 
   const toggle = (assessmentId: number) => {
     setOpenId(prev => (prev === assessmentId ? -1 : assessmentId))
   }
 
   const getRadarOptions = (metrics: RecentPlayerEntry['assessments'][number]['metrics'], color: string): ApexOptions => ({
-    chart: { toolbar: { show: false }, animations: { enabled: false } },
+    chart: { toolbar: { show: false }, animations: { enabled: false }, parentHeightOffset: 0 },
     colors: [color],
     plotOptions: {
-      radar: { polygons: { strokeColors: 'var(--mui-palette-divider)' } }
+      radar: {
+        size: 75,
+        polygons: { strokeColors: 'var(--mui-palette-divider)', connectorColors: 'var(--mui-palette-divider)' }
+      }
     },
     fill: { opacity: 0.25 },
     markers: { size: 0 },
@@ -35,9 +46,9 @@ const PlayerSessionCard = ({ entry }: Props) => {
     dataLabels: { enabled: false },
     grid: { show: false },
     xaxis: {
-      categories: metrics.map(m => m.name),
+      categories: metrics.map(m => m.name.length > 11 ? m.name.slice(0, 11) + '…' : m.name),
       labels: {
-        style: { fontSize: '10px', colors: Array(metrics.length).fill('var(--mui-palette-text-disabled)') }
+        style: { fontSize: '9px', colors: Array(metrics.length).fill('var(--mui-palette-text-disabled)') }
       }
     },
     yaxis: { show: false },
@@ -84,37 +95,49 @@ const PlayerSessionCard = ({ entry }: Props) => {
         <div className='flex flex-col gap-1'>
           {assessments.map(a => {
             const isOpen = openId === a.assessmentId
-            const chartMetrics = a.metrics.filter(m => m.avgValue != null)
+            const visibleMetrics = a.metrics.filter(m => !HIDDEN_METRICS.has(m.name))
+            const chartMetrics = visibleMetrics.filter(m => m.avgValue != null)
 
             return (
               <div key={a.assessmentId} className='rounded-lg overflow-hidden'>
                 {/* Row */}
                 <div
-                  className={[
-                    'flex items-center gap-2 px-3 py-2 rounded-lg transition-colors cursor-pointer',
-                    isOpen
-                      ? 'bg-primary/10'
-                      : a.isActiveNow
-                        ? 'bg-success/10 hover:bg-success/15'
-                        : 'bg-action-hover hover:bg-action-selected',
-                  ].join(' ')}
+                  className={`flex items-center gap-2 px-3 py-2 transition-colors cursor-pointer select-none ${isOpen ? 'rounded-t-lg' : 'rounded-lg'}`}
+                  style={{
+                    backgroundColor:
+                      a.isActiveNow && isOpen ? 'rgba(34,197,94,0.12)' :
+                      a.isActiveNow           ? 'rgba(34,197,94,0.07)' :
+                      isOpen                  ? 'rgba(124,106,247,0.12)' :
+                                                'rgba(255,255,255,0.03)',
+                  }}
                   onClick={() => toggle(a.assessmentId)}
                 >
-                  {/* Sport label — click navigates to report */}
-                  <Link
-                    href={`/report?playerId=${player.id}&assessmentId=${a.assessmentId}`}
-                    className='flex items-center gap-1.5 flex-1 min-w-0'
-                    onClick={e => e.stopPropagation()}
-                  >
-                    <span className='text-sm'>{getSportEmoji(a.sport)}</span>
-                    <Typography variant='caption' className='font-semibold truncate' color='text.primary'>
-                      {a.sport}
-                    </Typography>
-                  </Link>
+                  {/* Sport label — row click toggles only, no navigation here */}
+                  <div className='flex items-center gap-2 flex-1 min-w-0'>
+                    <span className='text-sm flex-shrink-0'>{getSportEmoji(a.sport)}</span>
+                    <div className='flex flex-col min-w-0'>
+                      <div className='flex items-center gap-1.5'>
+                        <Typography variant='caption' className='font-semibold leading-tight' color='text.primary'>
+                          {a.sport}
+                        </Typography>
+                        {a.isActiveNow && (
+                          <span
+                            className='w-1.5 h-1.5 rounded-full flex-shrink-0 animate-pulse'
+                            style={{ backgroundColor: 'var(--mui-palette-success-main)' }}
+                          />
+                        )}
+                      </div>
+                      {a.templateName && (
+                        <Typography variant='caption' className='truncate leading-tight' color='text.disabled' style={{ fontSize: '10px' }}>
+                          {a.templateName}
+                        </Typography>
+                      )}
+                    </div>
+                  </div>
 
                   {a.isActiveNow ? (
                     <Typography variant='caption' color='success.main' className='font-semibold flex-shrink-0'>
-                      ● active now
+                      active now
                     </Typography>
                   ) : (
                     <Typography variant='caption' color='text.disabled' className='flex-shrink-0'>
@@ -122,55 +145,64 @@ const PlayerSessionCard = ({ entry }: Props) => {
                     </Typography>
                   )}
 
-                  {/* Chevron — click toggles accordion only */}
-                  <button
-                    onClick={e => { e.stopPropagation(); toggle(a.assessmentId) }}
-                    className='ml-1 text-text-disabled hover:text-primary transition-colors flex-shrink-0'
-                    aria-label={isOpen ? 'Collapse' : 'Expand'}
+                  {/* Chevron — visual only, row click handles toggle */}
+                  <span
+                    className={`ml-1 flex-shrink-0 text-xs transition-all duration-200 select-none ${isOpen ? 'rotate-180 text-primary' : 'text-text-disabled'}`}
+                    style={{ display: 'inline-block' }}
                   >
-                    <i className={`ri-arrow-down-s-line text-base transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-                  </button>
+                    ▾
+                  </span>
                 </div>
 
                 {/* Expandable panel */}
                 {isOpen && (
-                  <div className={`px-3 pb-3 pt-2 rounded-b-lg ${a.isActiveNow ? 'bg-success/5' : 'bg-primary/5'}`}>
-                    {a.isActiveNow && a.metrics.length === 0 && (
+                  <div
+                    className='px-3 pb-3 pt-2 rounded-b-lg'
+                    style={{
+                      background: a.isActiveNow ? 'rgba(34,197,94,0.05)' : 'rgba(124,106,247,0.06)',
+                      borderTop: a.isActiveNow ? '1px solid rgba(34,197,94,0.15)' : '1px solid rgba(124,106,247,0.15)',
+                    }}
+                  >
+                    {a.isActiveNow && visibleMetrics.length === 0 && (
                       <Typography variant='caption' color='text.secondary' className='block text-center py-2 italic'>
                         Session in progress — no completed metrics yet
                       </Typography>
                     )}
-                    {a.isActiveNow && a.metrics.length > 0 && (
+                    {a.isActiveNow && visibleMetrics.length > 0 && (
                       <Typography variant='caption' color='text.secondary' className='block text-center mb-1 italic'>
                         Session in progress — showing last completed metrics
                       </Typography>
                     )}
-                    {!a.isActiveNow && a.metrics.length === 0 && (
+                    {!a.isActiveNow && visibleMetrics.length === 0 && (
                       <Typography variant='caption' color='text.secondary' className='block text-center py-2 italic'>
                         No metrics recorded yet
                       </Typography>
                     )}
-                    {a.metrics.length > 0 && (
-                      <>
+                    {visibleMetrics.length > 0 && (
+                      <div
+                        className='cursor-pointer'
+                        onClick={() => goToReport(a.assessmentId)}
+                        title='Open report'
+                      >
                         {chartMetrics.length > 0 && (
                           <AppReactApexCharts
                             type='radar'
-                            height={180}
+                            height={260}
                             width='100%'
                             series={[{ name: 'AVG', data: chartMetrics.map(m => m.avgValue as number) }]}
                             options={getRadarOptions(chartMetrics, getAvatarColor(player.id))}
                           />
                         )}
-                        {chartMetrics.length === 0 && a.metrics.length > 0 && (
+                        {chartMetrics.length === 0 && visibleMetrics.length > 0 && (
                           <Typography variant='caption' color='text.secondary' className='block text-center py-2 italic'>
                             No values recorded yet
                           </Typography>
                         )}
                         <div className='flex flex-wrap gap-1.5 mt-1'>
-                          {a.metrics.map(m => (
+                          {visibleMetrics.map(m => (
                             <span
                               key={m.conditionalMetricId}
-                              className='text-xs px-2 py-0.5 rounded bg-action-hover text-text-secondary'
+                              className='text-xs px-2 py-0.5 rounded-md border border-divider bg-action-hover text-text-secondary'
                             >
                               {m.name}{' '}
                               <span className='font-semibold text-primary'>
@@ -179,7 +211,7 @@ const PlayerSessionCard = ({ entry }: Props) => {
                             </span>
                           ))}
                         </div>
-                      </>
+                      </div>
                     )}
                   </div>
                 )}

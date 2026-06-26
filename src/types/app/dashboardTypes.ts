@@ -11,6 +11,7 @@ export type DashboardKpi = {
 export type PlayerAssessmentSummary = {
   assessmentId: number
   sport: string
+  templateName: string | null
   lastSessionDate: string | null
   isActiveNow: boolean
   metrics: PlayerMetricEntry[]

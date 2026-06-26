@@ -196,16 +196,26 @@ function TablePanel({ data, valueType }: Props) {
   )
 }
 
-const ReportPanel = ({ panel, data, valueType }: Props) => (
-  <Card>
-    <CardContent>
-      {panel.type === 'table' ? (
-        <TablePanel panel={panel} data={data} valueType={valueType} />
-      ) : (
-        <ChartPanel panel={panel} data={data} valueType={valueType} />
-      )}
-    </CardContent>
-  </Card>
-)
+// TODO: remove once backend excludes Power from metrics by default
+const HIDDEN_METRIC_NAMES = new Set(['Power'])
+
+const ReportPanel = ({ panel, data, valueType }: Props) => {
+  const filteredData: ReportData = {
+    ...data,
+    rows: data.rows.filter(r => !HIDDEN_METRIC_NAMES.has(r.name)),
+  }
+
+  return (
+    <Card>
+      <CardContent>
+        {panel.type === 'table' ? (
+          <TablePanel panel={panel} data={filteredData} valueType={valueType} />
+        ) : (
+          <ChartPanel panel={panel} data={filteredData} valueType={valueType} />
+        )}
+      </CardContent>
+    </Card>
+  )
+}
 
 export default ReportPanel

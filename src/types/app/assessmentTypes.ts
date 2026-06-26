@@ -4,6 +4,7 @@ export type MeasurementType = {
 }
 
 export type AssessmentType = { id: number; playerId: number; sport: string; date?: string; templateId: number; conditionId?: number; allowExternalUrls: boolean }
+export type AssessmentTemplateType = { id: number; name: string; sport: string; description?: string; conditionId?: number }
 export type SessionType = { id: number; assessmentId: number; startTime: string; status?: 'ACTIVE' | 'COMPLETE' | null }
 export type RepType = { id: number; sessionId: number; startTime: string; repNumber?: number }
 export type AssessmentMetricType = { id: number; assessmentId: number; conditionalMetricId: number; sourceId: number; description?: string; minValue?: number; maxValue?: number; avgValue?: number; sessionCount: number; repCount: number }
