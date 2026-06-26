@@ -23,6 +23,26 @@ const PlayerSessionCard = ({ entry }: Props) => {
     setOpenId(prev => (prev === assessmentId ? -1 : assessmentId))
   }
 
+  const getRadarOptions = (metrics: RecentPlayerEntry['assessments'][number]['metrics'], color: string): ApexOptions => ({
+    chart: { toolbar: { show: false }, animations: { enabled: false } },
+    colors: [color],
+    plotOptions: {
+      radar: { polygons: { strokeColors: 'var(--mui-palette-divider)' } }
+    },
+    fill: { opacity: 0.25 },
+    markers: { size: 0 },
+    legend: { show: false },
+    dataLabels: { enabled: false },
+    grid: { show: false },
+    xaxis: {
+      categories: metrics.map(m => m.name),
+      labels: {
+        style: { fontSize: '10px', colors: Array(metrics.length).fill('var(--mui-palette-text-disabled)') }
+      }
+    },
+    yaxis: { show: false },
+  })
+
   return (
     <Card className={hasActiveSession ? 'border border-success' : ''}>
       <CardContent className='flex flex-col gap-3 p-4'>
@@ -64,32 +84,14 @@ const PlayerSessionCard = ({ entry }: Props) => {
         <div className='flex flex-col gap-1'>
           {assessments.map(a => {
             const isOpen = openId === a.assessmentId
-            const radarOptions: ApexOptions = {
-              chart: { toolbar: { show: false }, animations: { enabled: false } },
-              colors: [getAvatarColor(player.id)],
-              plotOptions: {
-                radar: { polygons: { strokeColors: 'var(--mui-palette-divider)' } }
-              },
-              fill: { opacity: 0.25 },
-              markers: { size: 0 },
-              legend: { show: false },
-              dataLabels: { enabled: false },
-              grid: { show: false },
-              xaxis: {
-                categories: a.metrics.map(m => m.name),
-                labels: {
-                  style: { fontSize: '10px', colors: Array(a.metrics.length).fill('var(--mui-palette-text-disabled)') }
-                }
-              },
-              yaxis: { show: false },
-            }
+            const chartMetrics = a.metrics.filter(m => m.avgValue != null)
 
             return (
               <div key={a.assessmentId} className='rounded-lg overflow-hidden'>
                 {/* Row */}
                 <div
                   className={[
-                    'flex items-center gap-2 px-3 py-2 cursor-pointer rounded-lg transition-colors',
+                    'flex items-center gap-2 px-3 py-2 rounded-lg transition-colors',
                     isOpen
                       ? 'bg-primary/10'
                       : a.isActiveNow
@@ -101,7 +103,6 @@ const PlayerSessionCard = ({ entry }: Props) => {
                   <Link
                     href={`/report?playerId=${player.id}&assessmentId=${a.assessmentId}`}
                     className='flex items-center gap-1.5 flex-1 min-w-0'
-                    onClick={e => e.stopPropagation()}
                   >
                     <span className='text-sm'>{getSportEmoji(a.sport)}</span>
                     <Typography variant='caption' className='font-semibold truncate' color='text.primary'>
@@ -149,13 +150,15 @@ const PlayerSessionCard = ({ entry }: Props) => {
                     )}
                     {a.metrics.length > 0 && (
                       <>
-                        <AppReactApexCharts
-                          type='radar'
-                          height={180}
-                          width='100%'
-                          series={[{ name: 'AVG', data: a.metrics.map(m => m.avgValue ?? 0) }]}
-                          options={radarOptions}
-                        />
+                        {chartMetrics.length > 0 && (
+                          <AppReactApexCharts
+                            type='radar'
+                            height={180}
+                            width='100%'
+                            series={[{ name: 'AVG', data: chartMetrics.map(m => m.avgValue as number) }]}
+                            options={getRadarOptions(chartMetrics, getAvatarColor(player.id))}
+                          />
+                        )}
                         <div className='flex flex-wrap gap-1.5 mt-1'>
                           {a.metrics.map(m => (
                             <span
