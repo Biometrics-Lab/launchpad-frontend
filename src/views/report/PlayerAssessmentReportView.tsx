@@ -20,14 +20,20 @@ type Granularity = 'OVERALL' | 'PER_SESSION' | 'PER_REP'
 
 const DEFAULT_CONFIG_NAME = 'Column Chart'
 
+const PRESET_CONFIGS: ReportConfigEntry[] = [
+  { id: null, name: 'Column Chart', reportType: 'player-assessment', preset: true, config: { granularity: 'OVERALL', filters: { conditionalMetricIds: [] }, panels: [{ type: 'bar', series: ['avg', 'min', 'max'] }] } },
+  { id: null, name: 'Radar Chart', reportType: 'player-assessment', preset: true, config: { granularity: 'OVERALL', valueType: 'avg', filters: { conditionalMetricIds: [] }, panels: [{ type: 'radar', series: ['avg'] }] } },
+]
+
 type Props = {
   initialPlayerId: number | null
   initialAssessmentId: number | null
   initialSessionId?: number | null
   initialGranularity?: 'OVERALL' | 'PER_SESSION' | 'PER_REP' | null
+  initialConfigName?: string | null
 }
 
-const PlayerAssessmentReportView = ({ initialPlayerId, initialAssessmentId, initialSessionId, initialGranularity }: Props) => {
+const PlayerAssessmentReportView = ({ initialPlayerId, initialAssessmentId, initialSessionId, initialGranularity, initialConfigName }: Props) => {
   const [players, setPlayers] = useState<PlayerType[]>([])
   const [assessments, setAssessments] = useState<AssessmentType[]>([])
   const [sessions, setSessions] = useState<SessionType[]>([])
@@ -36,7 +42,7 @@ const PlayerAssessmentReportView = ({ initialPlayerId, initialAssessmentId, init
 
   const [playerId, setPlayerId] = useState<number | null>(initialPlayerId)
   const [assessmentId, setAssessmentId] = useState<number | null>(initialAssessmentId)
-  const [configName, setConfigName] = useState(DEFAULT_CONFIG_NAME)
+  const [configName, setConfigName] = useState(initialConfigName ?? DEFAULT_CONFIG_NAME)
   const [granularity, setGranularity] = useState<Granularity>(initialGranularity ?? 'OVERALL')
   const [sessionId, setSessionId] = useState<number | null>(initialSessionId ?? null)
   const [valueType, setValueType] = useState<'avg' | 'min' | 'max'>('avg')
@@ -54,8 +60,11 @@ const PlayerAssessmentReportView = ({ initialPlayerId, initialAssessmentId, init
     fetch('/api/sessions').then(r => r.json()).then(setSessions).catch(() => {})
     fetch('/api/report-configs?reportType=player-assessment')
       .then(r => r.json())
-      .then(setConfigs)
-      .catch(() => setConfigs([{ id: null, name: 'Column Chart', reportType: 'player-assessment', preset: true, config: { granularity: 'OVERALL', filters: { conditionalMetricIds: [] }, panels: [{ type: 'bar', series: ['avg', 'min', 'max'] }] } }]))
+      .then((saved: ReportConfigEntry[]) => {
+        const names = new Set(saved.map(c => c.name))
+        setConfigs([...PRESET_CONFIGS.filter(p => !names.has(p.name)), ...saved])
+      })
+      .catch(() => setConfigs(PRESET_CONFIGS))
   }, [])
 
   // Auto-select assessment when player has exactly one
