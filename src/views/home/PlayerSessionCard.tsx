@@ -91,18 +91,20 @@ const PlayerSessionCard = ({ entry }: Props) => {
                 {/* Row */}
                 <div
                   className={[
-                    'flex items-center gap-2 px-3 py-2 rounded-lg transition-colors',
+                    'flex items-center gap-2 px-3 py-2 rounded-lg transition-colors cursor-pointer',
                     isOpen
                       ? 'bg-primary/10'
                       : a.isActiveNow
                         ? 'bg-success/10 hover:bg-success/15'
                         : 'bg-action-hover hover:bg-action-selected',
                   ].join(' ')}
+                  onClick={() => toggle(a.assessmentId)}
                 >
                   {/* Sport label — click navigates to report */}
                   <Link
                     href={`/report?playerId=${player.id}&assessmentId=${a.assessmentId}`}
                     className='flex items-center gap-1.5 flex-1 min-w-0'
+                    onClick={e => e.stopPropagation()}
                   >
                     <span className='text-sm'>{getSportEmoji(a.sport)}</span>
                     <Typography variant='caption' className='font-semibold truncate' color='text.primary'>
@@ -122,7 +124,7 @@ const PlayerSessionCard = ({ entry }: Props) => {
 
                   {/* Chevron — click toggles accordion only */}
                   <button
-                    onClick={() => toggle(a.assessmentId)}
+                    onClick={e => { e.stopPropagation(); toggle(a.assessmentId) }}
                     className='ml-1 text-text-disabled hover:text-primary transition-colors flex-shrink-0'
                     aria-label={isOpen ? 'Collapse' : 'Expand'}
                   >
@@ -158,6 +160,11 @@ const PlayerSessionCard = ({ entry }: Props) => {
                             series={[{ name: 'AVG', data: chartMetrics.map(m => m.avgValue as number) }]}
                             options={getRadarOptions(chartMetrics, getAvatarColor(player.id))}
                           />
+                        )}
+                        {chartMetrics.length === 0 && a.metrics.length > 0 && (
+                          <Typography variant='caption' color='text.secondary' className='block text-center py-2 italic'>
+                            No values recorded yet
+                          </Typography>
                         )}
                         <div className='flex flex-wrap gap-1.5 mt-1'>
                           {a.metrics.map(m => (

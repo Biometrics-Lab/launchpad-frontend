@@ -110,12 +110,13 @@ export function getAvatarColor(id: number): string {
 }
 
 export function getInitials(name: string): string {
-  return name
+  const initials = name
     .split(' ')
     .map(n => n[0] ?? '')
     .join('')
     .slice(0, 2)
     .toUpperCase()
+  return initials || '?'
 }
 
 const SPORT_EMOJI: Record<string, string> = {
