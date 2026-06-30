@@ -1,34 +1,45 @@
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# Launchpad
+
+SaaS platform for baseball facilities to measure player metrics and manage player development.
+
+Built with Next.js 15, MUI v6, TypeScript. Connects to the [launchpad](../launchpad/) Spring Boot backend.
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Screenshots
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
+### Dashboard
+KPI summary cards (Players, Teams, Assessments, Active Now) with a Recently Tested feed showing per-player radar charts and metric badges.
 
-## Learn More
+![Dashboard](docs/screenshots/01-dashboard.png)
 
-To learn more about Next.js, take a look at the following resources:
+### Live Session
+Real-time session view: rep list with bat speed per rep, live metric panel, and synced video playback with speed controls.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+![Live Session](docs/screenshots/02-live-session.png)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+### Report — Radar Chart
+Player assessment report with a full radar chart visualization. Filter by session or rep, toggle AVG / MIN / MAX, and select metrics.
 
-## Deploy on Vercel
+![Report Radar](docs/screenshots/03-report-radar.png)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Report — Column Chart
+Same report in column chart mode with a metric summary table showing values and session counts below.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+![Report Column](docs/screenshots/04-report-column.png)
+
+### Assessments List
+Searchable table of all assessments — player name, sport badge, and template — with edit, sessions, and delete actions.
+
+![Assessments List](docs/screenshots/05-assessments-list.png)
+
+### Assessment Detail
+Assessment page showing aggregated metrics (MIN / MAX / AVG across sessions and reps) and a sessions table with status badges.
+
+![Assessment Detail](docs/screenshots/06-assessment-detail.png)
